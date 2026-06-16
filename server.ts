@@ -4,6 +4,7 @@ import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 import { TU_HOA_BY_STEM, HOA_LABELS } from "./src/utils/tuHoa";
+import { getDamTinhForStars } from "./src/knowledge/damTinh";
 
 dotenv.config();
 
@@ -206,6 +207,117 @@ async function startServer() {
       };
       const luuNienReportStr = buildLuuNienReport();
 
+      // ===== TỰ HÓA 自化 (code phát hiện sẵn — tinh thần Trung Châu Phái) =====
+      // Tự Hóa xảy ra khi Thiên can của CHÍNH cung phi một trong tứ hóa, mà sao thụ hóa
+      // lại đóng NGAY TRONG cung đó (sao bay về chính mình). Đây là kết cấu khách quan,
+      // không phải quan điểm riêng của trường phái nào, nên tính bằng code là chính xác.
+      // Ý nghĩa cổ điển: tự hóa = năng lượng tự tiêu hao/tự phát lộ ngay tại cung, không
+      // chờ phi sang cung khác. Code chỉ phát hiện & gắn nhãn; AI luận nghĩa.
+      const buildTuHoaReport = (): string => {
+        const lines: string[] = [];
+        palacesArr.forEach((p: any) => {
+          const b = toBranchIndex(p.index);
+          const stem = p.heavenlyStem;
+          const tuhoa = stem ? TU_HOA_BY_STEM[String(stem).trim()] : undefined;
+          if (!tuhoa) return;
+          // Tập tên sao đang đóng trong CHÍNH cung này (đủ 3 nhóm)
+          const inThisPalace = new Set(
+            [
+              ...(p.majorStars || []),
+              ...(p.minorStars || []),
+              ...(p.adjectiveStars || []),
+            ].map((s: any) => normalizeStarName(s.name))
+          );
+          const selfHits = tuhoa
+            .map((star, i) => ({ star, label: HOA_LABELS[i] }))
+            .filter(({ star }) => inThisPalace.has(normalizeStarName(star)));
+          if (selfHits.length > 0) {
+            const detail = selfHits.map(({ label, star }) => `${label}→${star}`).join("; ");
+            lines.push(`  - ${p.name} (${BRANCHES_VI[b]}, can ${stem}): TỰ HÓA ${detail}`);
+          }
+        });
+        return lines.length > 0
+          ? lines.join("\n")
+          : "  - Lá số không có cung nào phát Tự Hóa (自化) theo can bản cung.";
+      };
+      const tuHoaReportStr = buildTuHoaReport();
+
+      // ===== CÁCH CỤC CHÍNH TINH (code nhận diện sẵn — kết cấu khách quan) =====
+      // Chỉ nhận diện các cách cục dựa trên TỔ HỢP CHÍNH TINH chuẩn (khách quan, mọi phái
+      // đồng thuận). KHÔNG suy luận cát/hung ở đây — chỉ gắn nhãn để AI luận nghĩa, tránh
+      // để AI tự nhận diện sai cách cục.
+      const buildCachCucReport = (): string => {
+        const menh = palacesArr.find((p: any) => String(p.name || "").includes("Mệnh"));
+        if (!menh) return "  - Không xác định được cung Mệnh nên chưa nhận diện cách cục.";
+        const bMenh = toBranchIndex(menh.index);
+        // Gom chính tinh ở Mệnh + tam phương (tam hợp) + xung chiếu — phạm vi quyết định cách cục
+        const th1 = (bMenh + 4) % 12;
+        const th2 = (bMenh + 8) % 12;
+        const xung = (bMenh + 6) % 12;
+        const collectMajors = (branchIdx: number): string[] =>
+          (palaceByBranch[branchIdx]?.majorStars || []).map((s: any) => normalizeStarName(s.name));
+        const triangleStars = new Set<string>([
+          ...collectMajors(bMenh),
+          ...collectMajors(th1),
+          ...collectMajors(th2),
+          ...collectMajors(xung),
+        ]);
+        const has = (name: string) => triangleStars.has(normalizeStarName(name));
+        const found: string[] = [];
+        // Sát Phá Tham
+        if (has("Thất Sát") && has("Phá Quân") && has("Tham Lang")) {
+          found.push("Sát Phá Tham (biến động, khai phá, thăng trầm mạnh)");
+        }
+        // Cơ Nguyệt Đồng Lương
+        if (has("Thiên Cơ") && has("Thái Âm") && has("Thiên Đồng") && has("Thiên Lương")) {
+          found.push("Cơ Nguyệt Đồng Lương (tham mưu, ổn định, chuyên môn/hành chính)");
+        }
+        // Tử Phủ đồng/hội
+        if (has("Tử Vi") && has("Thiên Phủ")) {
+          found.push("Tử Phủ (uy quyền, thủ thành, quản trị)");
+        }
+        // Phủ Tướng triều viên
+        if (has("Thiên Phủ") && has("Thiên Tướng")) {
+          found.push("Phủ Tướng triều viên (ổn định, hỗ tá, phúc khí thủ thành)");
+        }
+        // Cự Nhật
+        if (has("Cự Môn") && has("Thái Dương")) {
+          found.push("Cự Nhật (ngôn luận, danh tiếng, thị phi)");
+        }
+        // Tử Tham
+        if (has("Tử Vi") && has("Tham Lang")) {
+          found.push("Tử Tham (đào hoa quyền lực, dục vọng và biến hóa)");
+        }
+        // Liêm Trinh + Thiên Tướng
+        if (has("Liêm Trinh") && has("Thiên Tướng")) {
+          found.push("Liêm Tướng (kỷ luật, pháp độ, chính trực)");
+        }
+        // Vũ Khúc + Tham Lang
+        if (has("Vũ Khúc") && has("Tham Lang")) {
+          found.push("Vũ Tham (tài lộc phát muộn, thực dụng quyết liệt)");
+        }
+        if (found.length === 0) {
+          // Vô chính diệu tại Mệnh
+          if (collectMajors(bMenh).length === 0) {
+            return "  - Mệnh Vô Chính Diệu: cần mượn sao xung chiếu (đối cung) và tam phương để định cách. Luận theo các chính tinh hội chiếu, không gán tên cách cục cố định.";
+          }
+          return "  - Chưa khớp một cách cục chính tinh điển hình nào; hãy luận theo tổ hợp chính tinh thực tế tại Mệnh và tam phương, KHÔNG gán tên cách cục.";
+        }
+        return found.map((c) => `  - ${c}`).join("\n");
+      };
+      const cachCucReportStr = buildCachCucReport();
+
+      // ===== ĐÀM TINH (Trung Châu Phái - Vương Đình Chi) =====
+      // Gom TÊN chính tinh thực có trên lá số, rồi CHỈ lấy phần Đàm Tinh của những
+      // sao đó (getDamTinhForStars đã lọc sẵn). KHÔNG nhồi toàn bộ file tri thức.
+      const allMajorStarNames: string[] = [];
+      palacesArr.forEach((p: any) => {
+        (p.majorStars || []).forEach((s: any) => {
+          allMajorStarNames.push(String(s.name || "").trim());
+        });
+      });
+      const damTinhStr = getDamTinhForStars(allMajorStarNames);
+
       // ===== PHI TỨ HÓA ĐỘNG: ĐẠI VẬN & LƯU NIÊN (code tính sẵn) =====
       // Khác với Phi Tứ Hóa tĩnh (theo can bản cung), đây là đường bay theo CAN Đại vận
       // (can của cung đại hạn) và CAN Lưu niên (can năm xem hạn) — mới là dòng khí đang
@@ -359,12 +471,25 @@ ${decadalFlyingStr}
 * Phi Tứ Hóa Lưu niên (theo can năm ${transitYearNum} — can ${luuNienStem}):
 ${luuNienFlyingStr}
 
+--- CHEAT SHEET: TỰ HÓA 自化 (HỆ THỐNG PHÁT HIỆN SẴN — TINH THẦN TRUNG CHÂU PHÁI) ---
+Tự Hóa là khi can của CHÍNH cung phi hóa mà sao thụ hóa đóng ngay TRONG cung đó (sao tự hóa về mình), khác với phi hóa sang cung khác. Cổ nhân Trung Châu Phái coi Tự Hóa là điểm năng lượng tự phát lộ / tự tiêu hao ngay tại cung: Tự Hóa Lộc Quyền Khoa dễ phát nhưng dễ tản, Tự Hóa Kỵ là tự chuốc hao tổn/chấp niệm từ bên trong. Khi luận cung có Tự Hóa, hãy nhấn mạnh sắc thái "tự thân sinh ra" này. Dữ liệu đã tính sẵn:
+${tuHoaReportStr}
+
+--- CHEAT SHEET: CÁCH CỤC CHÍNH TINH (HỆ THỐNG NHẬN DIỆN SẴN — KẾT CẤU KHÁCH QUAN) ---
+Đây là cách cục dựa trên tổ hợp chính tinh tại Mệnh và tam phương tứ chính, do hệ thống nhận diện theo kết cấu khách quan (mọi trường phái đồng thuận). DÙNG TRỰC TIẾP, KHÔNG tự nhận diện lại. QUY TẮC BẮT BUỘC: chỉ được gọi tên một cách cục khi đủ các chính tinh cấu thành nó đã xuất hiện trong dữ liệu; nếu hệ thống ghi "chưa khớp" hoặc "Vô Chính Diệu", TUYỆT ĐỐI không tự gán tên cách cục, mà mô tả theo tổ hợp sao thực tế:
+${cachCucReportStr}
+
+--- TINH TÌNH CHÍNH TINH THEO ĐÀM TINH (TRUNG CHÂU PHÁI — VƯƠNG ĐÌNH CHI) ---
+Dưới đây là tính chất (tinh tình) của các CHÍNH TINH thực sự có trên lá số này, trích từ bộ 《王亭之談星》. Đây là tài liệu tham khảo để luận SÂU bản chất sao theo tinh thần trọng tinh tình của Trung Châu Phái, KHÔNG phải để chép lại khô khan. Hãy đan cài tinh tình này với vị trí cung, miếu/hãm, tứ hóa và tam phương tứ chính đã tính sẵn. VẪN PHẢI bám đúng các sao thực có trên lá số; không vì tài liệu này mà nhắc đến sao không tồn tại:
+${damTinhStr}
+
 --- KHUNG LUẬN GIẢI CHƯƠNG TRÌNH CHI TIẾT ---
 
 Bạn hãy soạn thảo bình giải chi tiết gồm 6 phần lớn sau đây bằng chữ quốc ngữ cực kỳ sâu sắc, phân tích chính xác từng sao và kết nối liên hoàn:
 
 1. **TAM PHƯƠNG TỨ CHÍNH & THẾ ĐỨNG LÁ SỐ (BẢN SẮC CẤU TRÚC Ý THỨC & 8 PHẦN CHIỀU SÂU - PHẢN XẠ CHỦ QUAN)**:
    Mổ xẻ sâu sắc tính cách bẩm sinh của đương số bằng cách liên kết chặt chẽ cung Mệnh với 3 cung vị vây quanh học thuyết Tam Phương Tứ Chính: Thiên Di (đối cung), Quan Lộc (tam hợp), Tài Bạch (tam hợp). Bạn hãy trích xuất trực tiếp tên các sao đóng ở ba cung vị này của họ để phân tích điểm sáng, điểm hiểm nghệ thuật hành xử bấy lâu và điểm mù cốt lõi bẩm sinh. Chỉ rõ nghiệp lý nhân quả đã tự định hình từ thói phản xa bộc trực không tự biết của họ bấy lâu nay.
+   Theo tinh thần Trung Châu Phái (trọng tinh tình & cách cục): hãy dùng phần "CÁCH CỤC CHÍNH TINH" đã nhận diện sẵn ở trên làm xương sống định cốt cách bản mệnh, rồi đọc sâu tinh tình (bản chất) của từng chính tinh trong tổ hợp đó thay vì chỉ liệt kê tên sao. Đồng thời soi phần "TỰ HÓA" để chỉ ra các điểm mà năng lượng tự phát lộ hoặc tự hao tổn ngay trong nội tâm đương số.
 
 2. **KRONOS TỨ HÓA (KHOA - QUYỀN - LỘC - KỴ) THEO KINH TOÀN NIÊN CHIẾN LƯỢC**:
    ${natalTuHoaResolved
