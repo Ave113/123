@@ -3,7 +3,7 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
-import { TU_HOA_BY_STEM, HOA_LABELS } from "./src/utils/tuHoa";
+import { TU_HOA_BY_STEM, HOA_LABELS, STEM_NAME_BY_YEAR_MOD } from "./src/utils/tuHoa";
 import { getDamTinhForStars, getDamTinhForAuxStars, getDamTinhTuHoaDetail } from "./src/knowledge/damTinh";
 
 dotenv.config();
@@ -21,6 +21,15 @@ async function startServer() {
 
       if (!chartData) {
         return res.status(400).json({ error: "Thiếu dữ liệu lá số Tử Vi." });
+      }
+
+      // Guard: lá số Tử Vi bắt buộc đủ 12 cung. Thiếu cung thì mọi quan hệ hình học
+      // (tam phương, xung chiếu, phi tứ hóa) đều không đáng tin — chặn sớm thay vì
+      // để AI luận trên dữ liệu khuyết mà không cảnh báo.
+      if (!Array.isArray(chartData.palaces) || chartData.palaces.length < 12) {
+        return res.status(400).json({
+          error: "Dữ liệu lá số không hợp lệ: thiếu thông tin 12 cung. Vui lòng an lại lá số đầy đủ trước khi yêu cầu AI luận giải."
+        });
       }
 
       // Bring Your Own Key (BYOK) model: Strictly require the user's personal API Key (do not fall back to developer's key)
@@ -417,10 +426,11 @@ Bạn phải bám sát 100% dữ liệu thực tế đóng trong 12 cung của l
         : "  - Chưa xác định được cung Đại hạn nên chưa tính phi tứ hóa Đại vận.";
 
       // Can Lưu niên: suy từ năm xem hạn theo (năm % 10).
+      // Dùng bảng can chung STEM_NAME_BY_YEAR_MOD từ ./src/utils/tuHoa (một nguồn sự
+      // thật duy nhất), tránh khai báo trùng bảng có thể lệch với core tuvi.ts.
       // 0:Canh 1:Tân 2:Nhâm 3:Quý 4:Giáp 5:Ất 6:Bính 7:Đinh 8:Mậu 9:Kỷ
-      const STEM_BY_YEAR_MOD = ["Canh", "Tân", "Nhâm", "Quý", "Giáp", "Ất", "Bính", "Đinh", "Mậu", "Kỷ"];
       const transitYearNum = Number(chartData.transitYear) || 2026;
-      const luuNienStem = STEM_BY_YEAR_MOD[((transitYearNum % 10) + 10) % 10];
+      const luuNienStem = STEM_NAME_BY_YEAR_MOD[((transitYearNum % 10) + 10) % 10];
       const luuNienFlyingStr = buildFlyingTuHoaFor(luuNienStem, `Lưu niên (năm ${transitYearNum}, can ${luuNienStem})`);
 
       // ===== ĐÀM TINH: TỨ HÓA CHI TIẾT THEO CẶP (chính tinh thụ hóa × loại Hóa) =====
@@ -432,14 +442,30 @@ Bạn phải bám sát 100% dữ liệu thực tế đóng trong 12 cung của l
         (table || []).map((star, i) => ({ star, hoa: HOA_LABELS[i] }));
       const decadalTuHoaTable = decadalStem ? TU_HOA_BY_STEM[String(decadalStem).trim()] : undefined;
       const luuNienTuHoaTable = luuNienStem ? TU_HOA_BY_STEM[String(luuNienStem).trim()] : undefined;
-      // Chỉ lấy Tứ Hóa NATAL ở tầng tinh tình chi tiết. Đường bay đại vận/lưu niên
-      // đã có ở block "Phi Tứ Hóa động" (decadalFlyingStr/luuNienFlyingStr), nên bỏ ở
-      // đây để tránh trùng lặp làm phình prompt (decadalTuHoaTable/luuNienTuHoaTable
-      // vẫn giữ khai báo vì còn dùng cho phần phi hóa động).
+      // Gồm Tứ Hóa NATAL + phi hóa Đại vận + phi hóa Lưu niên. Đường bay động vốn là
+      // dòng khí chi phối vận hạn thời gian thực, nên phải có tinh tình chi tiết tương
+      // ứng (không chỉ vị trí ở block "Phi Tứ Hóa động"), tránh để AI luận vận hạn nông
+      // hơn hẳn bản mệnh. getDamTinhTuHoaDetail tự khử trùng cặp (star|hoa) qua Set nên
+      // các cặp trùng giữa natal/đại vận/lưu niên chỉ in một lần — KHÔNG làm phình prompt.
       const damTinhTuHoaPairs = [
         ...collectTuHoaPairs(natalTuHoaTable),
+        ...collectTuHoaPairs(decadalTuHoaTable),
+        ...collectTuHoaPairs(luuNienTuHoaTable),
       ];
       const damTinhTuHoaDetailStr = getDamTinhTuHoaDetail(damTinhTuHoaPairs);
+
+      // ===== CUNG THÂN: NEO TRỌNG TÂM RIÊNG (làm nổi bật ngoài mảng 12 cung) =====
+      // SYSTEM_INSTRUCTION yêu cầu cực kỳ lưu tâm Cung Thân, nhưng trong mảng 12 cung
+      // nó dễ chìm. Tách 1 dòng tóm tắt riêng để AI bám trục Mệnh (tư duy, trước 30)
+      // vs Thân (hành động, sau 30). Chỉ tóm tắt từ dữ liệu cung đã có, KHÔNG tính mới.
+      const bodyPalace = palacesArr.find((p: any) => p?.isBodyPalace);
+      const bodyPalaceStr = bodyPalace
+        ? (() => {
+            const major = (bodyPalace.majorStars || []).map((s: any) => s.name).join(", ") || "Vô Chính Diệu";
+            const branch = BRANCHES_VI[toBranchIndex(bodyPalace.index)];
+            return `Cung Thân an tại cung ${bodyPalace.name} (Địa chi ${branch}, Thiên can ${bodyPalace.heavenlyStem}). Chính tinh thủ Thân: ${major}. Khi luận, hãy đối chiếu trục Mệnh (xu hướng tư duy bẩm sinh, chủ đạo nửa đầu đời ~trước 30) với Thân (xu hướng hành động/hậu vận, chủ đạo nửa sau ~sau 30) để thấy sự dịch chuyển nội tâm → hành vi của đương số.`;
+          })()
+        : "Lá số không đánh dấu Cung Thân đồng cung riêng (Thân đồng cung Mệnh hoặc dữ liệu chưa gắn cờ); luận Thân theo cung Mệnh.";
 
       const prompt = `--- DỮ LIỆU THÔNG TIN LÁ SỐ ĐƯƠNG SỐ ---
 - Giới tính: ${genderStr}
@@ -454,6 +480,9 @@ Bạn phải bám sát 100% dữ liệu thực tế đóng trong 12 cung của l
 - Cung Đại hạn (100 năm): Cung ${chartData.transitDecadalPalace || "Chưa rõ"}
 - Cung Tiểu hạn (1 năm): Cung ${chartData.transitYearlyPalace || "Chưa rõ"}
 - Cung Lưu niên Thái tuế: Cung ${chartData.transitLuuThaiTuePalace || "Chưa rõ"}
+
+--- CUNG THÂN (TRỌNG TÂM — ĐỐI CHIẾU VỚI CUNG MỆNH) ---
+${bodyPalaceStr}
 
 --- PHẢN ÁNH 12 CUNG VỊ & TOÀN BỘ SAO TRÊN LÁ SỐ ---
 ${chartData.palaces.map((p: any) => {
