@@ -73,6 +73,191 @@ export const DAM_TINH: Record<string, DamTinhEntry> = {
   }
 };
 
+// ===== PHỤ/TÁ/SÁT/TẠP DIỆU (Giai đoạn 2) =====
+// Tên sao tiếng Việt khớp dữ liệu iztro vi-VN (minorStars / adjectiveStars).
+export const DAM_TINH_AUX: Record<string, DamTinhEntry> = {
+  "Văn Xương": {
+    star: "Văn Xương", han: "文昌",
+    tinhTinh: "Chủ khoa giáp, chủ chính đồ xuất thân (đường khoa cử chính quy); chủ văn chương, văn tự. KHÔNG thích ở Dần Ngọ Tuất. Xương Khúc tề hội + Thiên Tài tại mệnh chủ trí tuệ hơn người. Một mình Văn Xương thì chủ thông minh nhưng chưa chắc lợi thi cử. Hợp Thái Dương Thiên Lương Lộc Tồn thành cách Dương Lương Xương Lộc — đại lợi thi cử cạnh tranh, thời nay là nghiên cứu học thuật. Văn Xương cũng có thể hóa đào hoa, nhất là khi đơn thủ không hội Văn Khúc; nữ mệnh kỵ Liêm/Tham (Xương Tham cư mệnh phấn cốt toái thi). Cách xấu nhất là Linh Xương Đà Vũ — hạn đến đầu hà (tai họa/ý ngoại)."
+  },
+  "Văn Khúc": {
+    star: "Văn Khúc", han: "文曲",
+    tinhTinh: "Cũng là sao khoa danh nhưng khác Văn Xương: Văn Xương chủ chính đồ, Văn Khúc chủ dị lộ công danh (thời nay là toán lý, kỹ thuật, công trình). Văn Xương chủ văn tự/văn chương, Văn Khúc chủ KHẨU TÀI (tài ăn nói); cũng chủ thuật số (Văn Khúc Thái Âm — cửu lưu thuật sĩ). Rất kỵ Hóa Kỵ — nhiều khi xấu hơn Văn Xương Hóa Kỵ (vd Tử Tham + Văn Khúc Hóa Kỵ tại Mão chủ phá gia vì cờ bạc). Văn Khúc Hóa Kỵ chính là 'ám diệu' mà cổ nhân nói. Cũng mang tính đào hoa khi hội đào hoa chư diệu; gặp Cự/Đồng mà không hội Xương thì hay có tình duyên đau khổ, nữ mệnh kỵ (thủy tính dương hoa)."
+  },
+  "Tả Phụ": {
+    star: "Tả Phụ", han: "左輔",
+    tinhTinh: "Sao trợ lực, nam thích Tả Phụ. Phải một sao thủ mệnh, một sao ở tam phương hội mới hiện rõ sức của Tả/Hữu thủ mệnh. Tả Phụ mang tính CHỦ ĐỘNG — mệnh gặp Tả Phụ thường được trợ lực chủ động. Nhưng quý ở tự lập: chính tinh mệnh phải hữu lực thì trợ lực mới là cẩm thượng thiêm hoa; phụ tá KHÔNG chủ tuyết trung tống thán (khác Khôi Việt). Trung Châu Phái: Tả Phụ chủ quý. Tả Hữu đồng cung chủ phi la y tử (đắc công danh). Tốt nhất khi một ở Quan, một ở Tài hội Mệnh; riêng Tử Phá thì THÍCH GIÁP hơn hội. Tả Hữu KHÔNG hóa Khoa (theo Trung Châu)."
+  },
+  "Hữu Bật": {
+    star: "Hữu Bật", han: "右弼",
+    tinhTinh: "Cùng tính chất Tả Phụ, nữ thích Hữu Bật. Trung Châu Phái: Hữu Bật chủ phú (Tả Phụ chủ quý); Tả Phụ chủ chính, Hữu Bật chủ phó — như Xương Khúc. Phu thê cung kỵ nhất ĐƠN KIẾN Tả hoặc Hữu (một sao đồng độ mà sao kia không hội tam phương): chủ người thứ ba xen vào, tình tay ba — cổ cho là bất lợi nữ mệnh, nay nam cũng vậy. Nữ mệnh Thiên Tướng + Hữu Bật cổ cho là 'đại bà mệnh' (chồng nạp thiếp). Tả Hữu kỵ Hỏa Linh đồng cung (nữ mệnh/phu thê — thiên phòng). Nếu một ở mệnh một ở phu thê gặp sát kỵ chủ hai lần hôn nhân."
+  },
+  "Thiên Khôi": {
+    star: "Thiên Khôi", han: "天魁",
+    tinhTinh: "Thiên Ất quý nhân (trú quý — quý ban ngày). Cổ cho chủ khoa danh, thời nay nên xem là CƠ HỘI, mà cơ hội này gắn với điển chương chế độ. Thiên Khôi chủ chính đồ xuất thân. Có cơ hội cần có trợ lực nên Khôi Việt thích hội Tả Hữu; hội Xương Khúc thì tính chất khác (Xương Khúc chủ thông minh văn chương, Khôi Việt chủ sức nâng đỡ đề bạt trên đường công danh). Thi cử xem Xương Khúc, xuất sĩ/thăng tiến xem Khôi Việt. Phải trùng điệp với lưu Khôi/lưu Việt của đại vận/lưu niên mới phát lực lớn. Khôi Việt giáp mệnh hoặc một ở mệnh một ở thân là cách đẹp. KHÔNG nhập Thìn Tuất (la võng). Sau 40 tuổi Khôi Việt có thể hóa đào hoa."
+  },
+  "Thiên Việt": {
+    star: "Thiên Việt", han: "天鉞",
+    tinhTinh: "Ngọc Đường quý nhân (dạ quý — quý ban đêm), cặp với Thiên Khôi. Thiên Khôi chủ chính đồ, Thiên Việt chủ dị lộ công danh. Thiên Việt phải phối hợp đúng độ với Thiên Khôi mới chủ chính đồ; nếu Thiên Việt đơn tinh thì lực không đủ, chỉ chủ cơ hội nhỏ. Khôi Việt một ở mệnh một ở phu thê (phu thê là thân cung) + tổ hợp tốt chủ thiếu niên đăng khoa, được vợ đẹp. Sửu/Mùi chỉ là vượng (không nhập miếu) — sau 40 tuổi gặp lại bị coi là 'quý nhân nhập mộ', dễ thành âm tiểu thương hại; gặp tứ sát chủ bệnh tật triền miên (Khôi Việt trùng phùng kiêm sát thấu, cố tật vưu đa)."
+  },
+  "Lộc Tồn": {
+    star: "Lộc Tồn", han: "祿存",
+    tinhTinh: "Nghĩa cơ bản là y lộc/tài phú. Lộc Tồn LUÔN bị Kình Dương và Đà La giáp hai bên — hàm ý: nơi tài phú tất có người nhòm ngó, kiếm tiền tất kèm thị phi và lao lực. Lộc Tồn độc thủ mệnh mà vô cát hóa thì chỉ là 'khán tài nô' (kẻ giữ của), nhỏ nhen, đa nghi, đề phòng tả hữu. Hợp thủ Thiên Di đối chiếu Mệnh hơn (Mệnh khỏi bị Kình Đà giáp), chủ y lộc phong phú, lợi thu nhập cố định (lương, tô, lãi). Mệnh gặp Lộc Mã (Lộc Tồn + Thiên Mã hội) chủ động mà sinh tài, đắc viễn phương chi tài. Thích đồng cung Tử Vi Thiên Tướng (quyền), Nhật Nguyệt (quang huy), Phủ Vũ (tài), Lương Đồng (phúc lộc ấm)."
+  },
+  "Thiên Mã": {
+    star: "Thiên Mã", han: "天馬",
+    tinhTinh: "Luôn ở Dần Thân Tỵ Hợi. Lộc Tồn/Hóa Lộc + Thiên Mã = Lộc Mã giao trì, chủ động mà sinh tài (đắc viễn phương chi tài). Rất thích đồng Xương Khúc (bớt lao nhọc), rất kỵ Hỏa Linh (suốt ngày bôn ba khổ cực). Phải xét Thiên Mã đồng cung sao nào: với Tràng Sinh chủ động bất tức (bôn ba không nghỉ); với Tuyệt thì động mà thiếu sinh khí, bị động mệt mỏi; với Thiên Vu gặp cát chủ thành tựu nơi xa. Đà La đồng cung = Chiết Túc Mã (ngựa gãy chân, trở ngại trì hoãn); Không diệu đồng cung = động mà bất thực. Thiên Cơ + Thiên Mã: phù động cực mạnh, bất thủ nhất nghiệp/nhất địa."
+  },
+  "Hỏa Tinh": {
+    star: "Hỏa Tinh", han: "火星",
+    tinhTinh: "Một trong lục sát, đi với Linh Tinh. Chủ mang đến BIẾN ĐỘNG — sự việc trước sau khác hẳn. Đặc tính 'hỏa minh linh ám': tai họa của Hỏa Tinh ở mặt nổi, ai cũng thấy/đoán trước được (khác Linh Tinh là ám). Thuộc hỏa, rất thích đồng/đối Tham Lang (Mộc sinh Hỏa phát đạt quang huy) — cách Hỏa Tham chủ ĐỘT PHÁT phú quý (hơn Linh Tham vì là minh hỏa). Hỏa Tinh + Kình Dương đồng/đối chủ kích phát, rèn giũa (như kim tượng nung lò). Hỏa Linh giáp mệnh tối kỵ — đời bôn ba lao lực, vô sự bận rộn. Hỏa Linh dù mang điềm tốt (Hỏa/Linh Tham đột phát) vẫn hàm động đãng."
+  },
+  "Linh Tinh": {
+    star: "Linh Tinh", han: "鈴星",
+    tinhTinh: "Cùng Hỏa Tinh chủ biến động, nhưng là 'ám' — tai họa Linh Tinh chỉ đương sự tự biết, biến sinh trước sau khó phòng (vd Hỏa Tinh ở điền trạch là cháy nhà nhìn thấy được, Linh Tinh là bị người phóng hỏa — ám diện). Linh Tham không bằng Hỏa Tham (quan lộc bất ninh — được phú quý giữa lúc nhiều việc, phải đối phó nhiều, trong lòng không yên). Tử nữ cung: Hỏa Tinh độc thủ đối cung cát thì không cô; cùng tình huống mà là Linh Tinh thì chủ thứ thất/ngoại sủng sinh con (ám diện). Linh Tinh hợp Đà La (âm hỏa luyện âm kim) — chuyển hóa nhưng gian khổ kéo dài, chủ ma luyện hơn là kích phát."
+  },
+  "Kình Dương": {
+    star: "Kình Dương", han: "擎羊",
+    tinhTinh: "Cặp sát diệu với Đà La, hóa khí là HÌNH (dương kim). Chủ tổn thất, sức phá hoại — việc hay công bại thùy thành, hoặc thành mà kèm thị phi/hậu di chứng. Sức phá của Kình thường ở MẶT NỔI: đương sự thấy rõ nguồn phản đối/phá hoại (như chân tiểu nhân). Kình + Hỏa Tinh đồng/đối chủ kích phát — như Mã Đầu Đới Tiễn (Kình tại Ngọ thuộc hỏa chính nam) chủ trải gian nguy rồi thành công. Nhiều tổ hợp mổ xẻ/khai đao có Kình. Tật ách gặp Kình thường chủ mổ xẻ. Lộc Tồn luôn bị Kình Đà giáp. Kình kỵ đồng/giáp Liêm Sát Phá Tham Cự Vũ; Thiên Tướng bị Kình Đà giáp (Hình Kỵ giáp ấn) thì rất xấu."
+  },
+  "Đà La": {
+    star: "Đà La", han: "陀羅",
+    tinhTinh: "Cặp với Kình Dương, hóa khí là KỴ (âm kim). Mang đến trở ngại và TRÌ HOÃN, việc sinh chuyện ngang trái, kéo dài, thành rồi lợi vẫn chưa tới tay khiến nản lòng. Khác Kình (mặt nổi), Đà La trở ngại ở MẶT CHÌM — khó tìm ra ai/đâu là chướng ngại thật (như ngụy quân tử). Đà + Hỏa Tinh chủ đột sinh trở ngại ngoài dự liệu, cảm giác khó chịu hơn Kình Hỏa. Đà hợp Linh Tinh (âm hỏa). Tham + Đà tại Dần = Phong lưu thái trượng (vì sắc sinh họa, mang sắc thái cá nhân). Đà La luôn cùng Kình giáp một cung (cung đó tất có Lộc Tồn). Đà đồng Thiên Mã = Chiết Túc Mã."
+  },
+  "Địa Không": {
+    star: "Địa Không", han: "地空",
+    tinhTinh: "Cùng Địa Kiếp là một cặp Không diệu (Trung Châu lấy Địa Không–Địa Kiếp làm đôi, không phải Thiên Không). Cổ: tác sự hư không, bất hành chính đạo, thành bại đa đoan. Nhưng không nên võ đoán xấu: tùy chính diệu đồng cung. Địa Không chủ ĐỘT NHIÊN gặp tỏa chiết (trắc trở bất ngờ). Hợp tư duy phá cách: Thái Dương Thiên Lương + Không + Xương Khúc chuyển thành giỏi tư duy/nghiên cứu học thuật, tư tưởng độc đáo. 'Kim không tắc minh, hỏa không tắc phát' — chính diệu thuộc kim (Vũ, Sát) hay hỏa (Liêm, Thái Dương, Sát) đồng Địa Không có thể trải gian khổ rồi phát. Liêm/Tham gặp Không có thể chuyển hóa thành nghệ thuật. Triết gia/khoa học gia/nghệ sĩ đôi khi lại thích Không Kiếp."
+  },
+  "Địa Kiếp": {
+    star: "Địa Kiếp", han: "地劫",
+    tinhTinh: "Cùng Địa Không thành đôi Không diệu. Cổ: tác sự sơ cuồng, gọi là bại cục. Địa Kiếp chủ BA ĐỘNG TẦN PHỒN (sóng gió biến động liên miên), khác Địa Không chủ tỏa chiết đột ngột. Cổ cho làm việc 'sơ cuồng' bất câu tiểu tiết, tư tưởng nghịch trào lưu — nay nhiều người phản trào lưu lại thành công, nên hiểu là phản truyền thống/phản trào lưu hơn là xấu tuyệt đối. Tài bạch cung gặp Không Kiếp thì trắc trở/ba động chắc chắn bất lợi (không liên quan bối cảnh xã hội). Phúc đức cung gặp Không Kiếp + chính diệu phù hợp (Liêm Tham...) chủ xúc phát đột nhiên. Địa Kiếp không có 'kim không hỏa không tắc phát' như Địa Không — nên kém Địa Không một bậc."
+  },
+  "Thiên Hình": {
+    star: "Thiên Hình", han: "天刑",
+    tinhTinh: "Chủ HÌNH, không thích nhập cung lục thân; gặp sát kỵ thường chủ hình khắc (không nhất định tử vong, có khi chỉ tai bệnh/mổ xẻ). Kình Dương hóa khí là hình nên Thiên Hình + Kình đồng độ thì tăng cường lẫn nhau, đôi khi chủ thị phi khẩu thiệt từ tụng. Thiên Hình + Thiên Vu gặp sát kỵ thường vì tranh di sản mà kiện tụng. Nhưng vô sát kỵ thì Thiên Hình chỉ chủ KÍCH PHÁT hoặc tự luật (kỷ luật). Thái Dương Thiên Lương + Thiên Hình thường hợp pháp luật, hoặc nhờ kích phát mà được thanh danh/thương dự. Liêm/Tham + Thiên Hình có thể nhờ tự luật mà giảm tính đào hoa. Kỵ đồng Đại Hao (Hình Hao — phá bại, tổn hao)."
+  },
+  "Thiên Diêu": {
+    star: "Thiên Diêu", han: "天姚",
+    tinhTinh: "Một trong các đào hoa chư diệu, mang sắc thái 'chiêu thủ thành thân' (gặp gỡ ngẫu nhiên là sinh tình). Thiên Diêu ở phu thê thì kết hợp ít nhiều mang tính bất kỳ nhi ngộ; hội Xương Khúc thì tăng lực Thiên Diêu. Nhưng nếu gặp Tả Hữu thì Thiên Diêu hóa thành 'môi tinh' (sao mai mối), tính chất khác hẳn. Thiên Diêu + cát hóa/cát diệu ở Mệnh/Quan/Tài có tính dị tính sinh tài (hợp nghề tiếp xúc nhiều người khác giới), có thể coi như tài tinh ở mức độ nào đó. Nhưng dị tính sinh tài cũng có thể chuyển thành dị tính phá tài — kỵ Văn Khúc Hóa Kỵ (đào hoa kiếp). Kỵ Âm Sát (quyền mưu âm mưu, gặp thêm sát kỵ chớ trêu hoa ghẹo nguyệt)."
+  },
+  "Hồng Loan": {
+    star: "Hồng Loan", han: "紅鸞",
+    tinhTinh: "Cùng Thiên Hỷ là cặp tạp diệu trọng yếu, luôn đối củng nhau (một ở Mệnh thì một ở Thiên Di), sức tăng cường lẫn nhau. Hồng Loan chủ hôn nhân, Thiên Hỷ chủ sinh dục — hai sao quan hệ mật thiết nên có thể hoán đổi luận. Hồng Loan thích Xương Khúc đồng hội, lại gặp lưu Xương lưu Khúc thì thường là năm hôn nhân (nay hiểu là giai đoạn tình cảm chín muồi, đôi khi lệch kỳ do thủ tục đăng ký). Hồng Loan là đào hoa CHÍNH (chính thường), chỉ khi hội đào hoa khác mới đổi tính chất. Về già, Hồng Loan có thể chuyển từ đào hoa sang điềm tật bệnh."
+  },
+  "Thiên Hỷ": {
+    star: "Thiên Hỷ", han: "天喜",
+    tinhTinh: "Vốn là sao sinh dục, thích nhập Tử nữ cung hoặc Điền trạch cung; gặp cát tinh chủ sinh con (Tử Vi luận con thường lấy kỳ thụ thai làm chuẩn). Vì luôn đối Hồng Loan nên cũng dùng để đoán hôn nhân; nếu lạc hãm thì hôn kỳ thường ứng sang năm sau. Hồng Loan Thiên Hỷ cũng chủ tài nhưng phải hội cát/Hóa Lộc/Lộc Tồn mới chủ tiến tài; gặp sát kỵ hình hao thì là đào hoa phá tài. Thông thường chủ vì hôn nhân/sinh dục mà tiêu tiền. Lưu niên điền trạch có Thiên Hỷ + hư hao mà không cát phụ chủ trong nhà có người tới ở nhờ (không luận thêm nhân khẩu)."
+  },
+  "Hàm Trì": {
+    star: "Hàm Trì", han: "咸池",
+    tinhTinh: "Đào hoa tính chất KHÔNG TỐT, luôn ở Tý Ngọ Mão Dậu (tứ đào hoa địa). Gặp Thiên Diêu hoặc Mộc Dục thì tính đào hoa rất nặng (cổ gọi 'vô môi cẩu hợp'). Tại Tý Ngọ, Hàm Trì hay đồng Đại Hao — Đại Hao tăng tính đào hoa và chủ hao tổn. Kỵ gặp Xương Khúc (Xương Khúc dễ hóa đào hoa, tăng lực Hàm Trì); nếu Xương/Khúc Hóa Kỵ thì chủ tình cảm rối ren, kèm phá hao có thể là cạm bẫy tình cảm. Tham/Liêm + Hàm Trì thì đào hoa tăng cường lẫn nhau; hai sao này Hóa Kỵ cũng chủ khốn nhiễu tình cảm. Riêng Hàm Trì + Thiên Hỷ, Liêm Trinh Hóa Kỵ ở phu thê/mệnh nữ thì chỉ chủ sinh dục/thai nghén."
+  },
+  "Đại Hao": {
+    star: "Đại Hao", han: "大耗",
+    tinhTinh: "Có hai Đại Hao: theo năm sinh (mang tính đào hoa) và theo lưu niên (chỉ chủ hao tán). Đại Hao (năm sinh) đồng/đối Hàm Trì thì coi là đào hoa, tính chất bất lương — kỵ Liêm Trinh, Tham Lang, Văn Xương, Văn Khúc, càng kỵ bốn chính diệu này Hóa Kỵ (vì tửu sắc mà phá tài hoặc đào hoa kiếp). Đại Hao liền kề Thiên Hư (Hư Hao): Mệnh thấy Thiên Hư, phụ mẫu thấy Đại Hao thì có nghiệp tổ cũng không hưởng được; Tử nữ thấy Đại Hao chủ con phá hao. Khi sát kỵ hình tụ tập thêm Đại Hao thì từ điềm xấu dẫn tới tổn thất thực chất."
+  },
+  "Cô Thần": {
+    star: "Cô Thần", han: "孤辰",
+    tinhTinh: "Cùng Quả Tú là cặp, nhưng Cô Thần chỉ ở Dần Thân Tỵ Hợi, Quả Tú chỉ ở Thìn Tuất Sửu Mùi nên chỉ hội tam phương, lực tăng cường nhau không rõ. Ảnh hưởng rõ nhất lên tứ đào hoa địa (Tý Ngọ Mão Dậu) bị giáp/hội — nếu là phu thê thì ảnh hưởng hôn nhân, là tử nữ thì ảnh hưởng sinh dục. Cô Thần kỵ nhập phụ mẫu/tử nữ cung, phối hợp ác diệu thường chủ hình khắc/phân ly với cha mẹ hoặc con. Riêng Cô Thần ở Phúc đức thường chủ tinh thần độc lập; ở Điền trạch cổ chủ phân gia (ở riêng), từ đó suy ra điềm tạo lập cơ ngơi riêng."
+  },
+  "Quả Tú": {
+    star: "Quả Tú", han: "寡宿",
+    tinhTinh: "Cung ảnh hưởng chính là Phu thê: nếu sao ở phu thê không tốt hoặc phù động (Thiên Cơ, Cự Môn...) thì thường khiến vợ chồng tụ ít ly nhiều. Quả Tú nhập phụ mẫu, nếu thân cung có Thái Âm Hóa Kỵ và phụ mẫu lại gặp sát thì bất lợi cha, thường chủ theo mẹ tái giá. Phối hợp với Cô Thần: khi ảnh hưởng tới Phúc đức thì chủ có năng lực tư duy độc lập, tới Mệnh thì tăng tính độc lập — nên thích Tả Hữu phối hợp để bớt cô. Quả Tú tối kỵ đồng Vũ Khúc ở phu thê (phối ngẫu quá lấy mình làm trung tâm, độc đoán); gặp sát kỵ hình thì hình khắc phân ly. Lộc Tồn không bao giờ vào đất Quả Tú nên chỉ có Hóa Lộc điều hòa."
+  },
+  "Âm Sát": {
+    star: "Âm Sát", han: "陰煞",
+    tinhTinh: "Tạp diệu thường bị xem nhẹ là 'phạm tiểu nhân', nhưng tai hại đôi khi quá thế. Chỉ ở Dần Ngọ Tuất, Thân Tý Thìn; nhập miếu ở Ngọ, lạc hãm ở Thân Tý Thìn. Tác hại lộ ra khi đồng sát diệu — tăng mặt âm ám của sát: Kình (cạnh tranh) + Âm Sát = đả kích ngầm; Đà La (trở ngại) + Âm Sát = trì hoãn ngầm; đồng Linh Tinh thì tổn hại mặt chìm rất lớn. Âm Sát bản thân không chủ bệnh, nhưng đồng một số sao có thể đem tới nguy/tuyệt chứng — thống kê thấy tật ách cung của một số bệnh nhân ung thư hay có Âm Sát (tuy không tất yếu). Kỵ đồng Thiên Diêu (quyền mưu âm mưu)."
+  },
+  "Hoa Cái": {
+    star: "Hoa Cái", han: "華蓋",
+    tinhTinh: "Có Hoa Cái theo năm sinh và theo lưu niên. Theo năm sinh: chủ tín ngưỡng tôn giáo, triết lý — nhất là đồng Không diệu thì tính cận triết học; cũng có thể chuyển đào hoa chư diệu thành thông minh thanh khiết. Theo lưu niên: là sao tiêu giải quan tụng hình pháp (cổ dùng đoán kỳ ra tù / kỳ giải tán quan tư), độ ứng nghiệm khá cao. Lưu Hoa Cái trùng điệp Hoa Cái năm sinh thì rõ nhất, thích ở lưu niên mệnh/phúc đức/thiên di. Hoa Cái thích đồng Khôi Việt, mệnh gặp chủ một đời ít quan phi từ tụng."
+  }
+};
+
+// ===== TỨ HÓA TỔNG QUÁT (Giai đoạn 2) =====
+// Tinh tình bản chất bốn Hóa, cô đọng từ phần Tứ Hóa (四化) của Đàm Tinh.
+export const DAM_TINH_TU_HOA: Record<string, DamTinhEntry> = {
+  "Hóa Lộc": {
+    star: "Hóa Lộc", han: "化祿",
+    tinhTinh: "Tài tinh trọng yếu. Bất kể chính diệu nào Hóa Lộc đều mang tính tài lộc, chỉ khác nhau ở tính chất tài do bản chất chính diệu quyết định, nhưng chủ tài lộc thì không đổi. Một mình Hóa Lộc tác dụng không lớn vì tiền tài phải LƯU THÔNG mới vượng — nên thích Hóa Lộc đồng/đối Lộc Tồn hoặc hội tam phương (gọi là 'điệp lộc'), khi đó mới khởi tác dụng lưu thông. Hóa Lộc chủ TIẾN tài, nhưng không nhất định chủ tiền có thể tích súc; mức tiến tài và khả năng cất giữ phải xét bản chất chính diệu thụ Lộc."
+  },
+  "Hóa Quyền": {
+    star: "Hóa Quyền", han: "化權",
+    tinhTinh: "Tính chất là QUYỀN LỰC, dẫn tới địa vị (thường có địa vị rồi mới có quyền). Thích hai quyền tinh gặp nhau (tăng độ quyền lực và sinh đặc chất riêng). Ngoài quyền lực còn một tính chất quan trọng: tăng tính TÍCH CỰC và ỔN ĐỊNH của chính diệu thụ Quyền — vd Thiên Cơ vốn bất ổn, Hóa Quyền thì bớt động đãng, thành linh hoạt phát huy. Quyền tinh lợi cho kế hoạch, quản lý. Hội Khoa văn chư diệu = địa vị và thanh vọng tương phụ tương thành; hội Lộc tinh = tài phúc và địa vị tương thành; gặp Kỵ tinh = vì quyền lực mà chuốc đố kỵ, chướng ngại."
+  },
+  "Hóa Khoa": {
+    star: "Hóa Khoa", han: "化科",
+    tinhTinh: "Tính chất cơ bản là DANH DỰ và THANH VỌNG, tính chất danh do bản chất chính diệu quyết định. Xã hội xưa trọng công danh nên thích Văn Xương Văn Khúc Hóa Khoa (khoa văn đồng hội, chủ đăng đệ); xã hội nay thương mại, lại hay thích tài tinh Hóa Khoa (Thái Âm, Vũ Khúc, Thiên Phủ Hóa Khoa) và danh vọng đôi khi còn lớn hơn văn tinh Hóa Khoa. Nhưng đôi khi Hóa Khoa chỉ là thỏa mãn tâm lý/tự hào, không hẳn được người tôn sùng — luận lưu niên/lưu nguyệt phải lưu ý. Hóa Khoa cũng dẫn tới TRƯƠNG DƯƠNG (phô trương), nên sợ nhất Kỵ tinh xung hội (vì phô trương mà bị cản, hoặc ác sự truyền nghìn dặm)."
+  },
+  "Hóa Kỵ": {
+    star: "Hóa Kỵ", han: "化忌",
+    tinhTinh: "Phức tạp nhất; đại để là phát huy mặt XẤU NHẤT của bản chất chính diệu thụ Kỵ. Bất kỳ sao nào cũng không toàn thiện toàn ác (như bàn tay có lòng có lưng), Hóa Kỵ là phần ác lộ ra. Vd thiện tính Thái Dương là chiếu cố người, ác tính là xuất phong đầu — Hóa Kỵ chính là vì xuất đầu mà chuốc đố kỵ. Tính chất thường thấy: TỎA CHIẾT (trắc trở), chướng ngại, nghi kỵ, thị phi, vong thất. Có khi Hóa Kỵ chỉ là CẢM THỤ trong lòng đương sự (vd Thiên Đồng Hóa Kỵ thường là bận rộn lao thần, người ngoài lại thấy là 'năng giả đa lao') — không nhất định gây thay đổi xấu trong tế ngộ thực tế."
+  }
+};
+
+/**
+ * Lọc tri thức Đàm Tinh cho phụ/tá/sát/tạp diệu CÓ trên lá số.
+ * Quét đủ minor + adjective; KHÔNG nhồi toàn bộ DAM_TINH_AUX.
+ */
+export function getDamTinhForAuxStars(starNames: string[], maxEntries: number = 18): string {
+  const seen = new Set<string>();
+  const blocks: string[] = [];
+  let matched = 0;
+  let truncated = 0;
+  for (const raw of starNames) {
+    const name = String(raw || "")
+      .normalize("NFC")
+      .replace(/\[SAO LƯU\]\s*/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (!name || seen.has(name)) continue;
+    seen.add(name);
+    const entry = DAM_TINH_AUX[name];
+    if (entry) {
+      matched++;
+      // Trần ngân sách mềm: chỉ chèn tới maxEntries để tránh phình prompt.
+      if (blocks.length < maxEntries) {
+        blocks.push("  - " + entry.star + " (" + entry.han + "): " + entry.tinhTinh);
+      } else {
+        truncated++;
+      }
+    }
+  }
+  if (blocks.length === 0) {
+    return "  - Khong co phu/ta/sat/tap dieu nao khop du lieu Dam Tinh hien co.";
+  }
+  if (truncated > 0) {
+    blocks.push(
+      "  - (Đã hiển thị " + maxEntries + "/" + matched +
+      " phụ tạp diệu trọng yếu; " + truncated +
+      " sao thứ yếu còn lại đã có mặt ở bảng 12 cung — luận theo dữ liệu cung, không bỏ sót.)"
+    );
+  }
+  return blocks.join("\n");
+}
+
+/**
+ * Lọc tinh tình Tứ Hóa cho các Hóa thực sự xuất hiện (natal/đại vận/lưu niên).
+ * Truyền vào danh sách nhãn Hóa (vd: ["Hóa Lộc", "Hóa Kỵ"]).
+ */
+export function getDamTinhTuHoa(hoaLabels: string[]): string {
+  const seen = new Set<string>();
+  const blocks: string[] = [];
+  for (const raw of hoaLabels) {
+    // Chuẩn hóa: bỏ tiền tố "Lưu " để map về nhãn gốc.
+    const label = String(raw || "").replace(/^Lưu\s+/u, "").trim();
+    if (!label || seen.has(label)) continue;
+    seen.add(label);
+    const entry = DAM_TINH_TU_HOA[label];
+    if (entry) {
+      blocks.push("  - " + entry.star + " (" + entry.han + "): " + entry.tinhTinh);
+    }
+  }
+  return blocks.length > 0
+    ? blocks.join("\n")
+    : "  - Khong xac dinh duoc Tu Hoa nao de tra tinh tinh Dam Tinh.";
+}
+
 /**
  * Lọc tri thức Đàm Tinh cho ĐÚNG các sao xuất hiện trên lá số.
  * Trả về chuỗi đã định dạng để chèn vào prompt; KHÔNG nhồi toàn bộ file.
@@ -92,4 +277,57 @@ export function getDamTinhForStars(starNames: string[]): string {
   return blocks.length > 0
     ? blocks.join("\n")
     : "  - Khong co chinh tinh nao khop du lieu Dam Tinh hien co.";
+}
+
+// ===== TỨ HÓA CHI TIẾT THEO TỪNG CAN (Giai đoạn 3) =====
+// Key dạng "<Chính tinh>|<Loại Hóa>", vd "Vũ Khúc|Hóa Lộc".
+// Cô đọng trung thực từ vuongdinhchidamtinh.txt. Bổ sung dần theo nhóm.
+export const DAM_TINH_TU_HOA_DETAIL: Record<string, string> = {
+  // --- Nhóm HÓA LỘC ---
+  "Liêm Trinh|Hóa Lộc": "(Giáp) Đại lợi tiến tài, mang sắc thái tình cảm. Tích tài khó nhưng dễ danh lợi song thu; nếu thiên lý trí thì tiến tài phải dùng thủ đoạn, chủ lợi không chủ danh. Thích ở Mệnh/Tài/Quan; ở Phúc đức chỉ là hưởng thụ. Liêm hãm hóa Lộc kỵ thêm sát hao Không Kiếp (dễ chìm tửu sắc mà phá tài). Hợp lục thân cung (tình cảm thâm hậu); huynh đệ/phu thê chủ hợp tác, cùng tạo nghiệp. Rất thích Lộc Mã giao trì thành đại phú; tại Dần Thân đối Tham+Hỏa tất đại phú.",
+  "Thiên Cơ|Hóa Lộc": "(Ất) Phù động không đổi, chủ lưu thông lượng lớn (hóa như luân chuyển) nhưng KHÔNG chủ đại phú. Thời nay hợp nghề động não (tài chính, kế hoạch, kỹ thuật) lương cao. Phải nương hậu đài, không hợp quá độc lập tự mở. Có khi chỉ chủ chuyển việc/kiêm chức. Tối kỵ Hỏa Linh đồng độ (chỉ tiểu phú nhất thời rồi phá bại), kỵ Không Kiếp. Cơ+Nguyệt hóa Lộc: trực giác mạnh.",
+  "Thiên Đồng|Hóa Lộc": "(Bính) Thuần về tinh thần — chủ đời sống vật chất khiến tinh thần thỏa mãn, KHÔNG chủ đại phú đại quý. Thường vãn niên mới an định/thành phú, thiếu/trung niên phải trải ba chiết (khổ tận cam lai). Gặp sát Không Kiếp hư hao thì ba động lớn, thành tựu nhỏ. Đồng Lộc Tồn thì tài khí vượng, có Tả Hữu Khôi Việt thì cơ hội + trợ lực cùng đến. Kỵ Địa Không/Kiếp (khí nhỏ dễ đầy, táo bạo sinh phá tài), kỵ đào hoa+Xương Khúc (phong lưu lãng tử).",
+  "Thái Âm|Hóa Lộc": "(Đinh) Thái Âm là tài tinh, hóa Lộc là đồng khí, tăng sức chủ tài — nhưng phải NHẬP MIẾU mới chủ tài nguồn thuận; lạc hãm (nhất là người sinh ngày) chỉ chủ thỏa mãn tinh thần. Tính chủ tĩnh/tàng, chủ KẾ HOẠCH — tiến tài nhờ kế hoạch thành công, không bôn ba như Vũ Khúc. Đồng/đối Lộc Tồn thì tài phong, tiến tài thong dong. Phúc đức có Thái Âm hóa Lộc: lạc quan, biết hưởng thụ. Cần nhớ tất có Cự Môn hóa Kỵ ở Phúc đức (lao tâm).",
+  "Tham Lang|Hóa Lộc": "(Mậu) Giỏi giao tế ứng thù, hay nhờ xã giao mà được tài (trường tụ thiện vũ). Nhưng đồng đào hoa chư diệu thì ham tửu sắc hơn; gặp sát tất vì tửu sắc tài khí mà sinh phiền. Đồng Hỏa/Linh = Hỏa Tham/Linh Tham chủ đắc tài bất ngờ/đột phát; vô sát kỵ thì sau khi phát vẫn giữ được, tối kỵ Không Kiếp (phát rồi tan nhanh, phú quý trên giấy). Mang tính cạnh tranh; gặp Đà La là cản nhất. Kỵ ở phu thê (phối ngẫu bất trung nếu có đào hoa Xương Khúc).",
+  "Vũ Khúc|Hóa Lộc": "(Kỷ) Tài tinh cầu tài bằng HÀNH ĐỘNG (không phải kế hoạch). Hóa Lộc = hành động cầu tài thuận, hoặc vô tình mà đắc tài. Vô sát + Khôi Việt Tam Thai Bát Tọa Ân Quang Thiên Quý thì tiến tài do nắm tài quyền; có sát kỵ hình hao thì phải dựa kỹ nghệ (nữ thì vất vả). Kỵ Không Kiếp (hao tổn ngoài dự tính), kỵ Văn Khúc (hư phù, có chức không quyền). Không kỵ tứ sát thường (chỉ thêm cạnh tranh vất vả). Vũ+Tham thành Hỏa/Linh Tham thì phát đạt.",
+  "Thái Dương|Hóa Lộc": "(Canh) Chủ quý không chủ phú — phải xây được địa vị xã hội rồi tài mới theo đó (tiên quý hậu phú). Tính phát tán, phải có Khôi Việt Tả Hữu Xương Khúc thì cục diện mới lớn; đơn thủ dễ lộ phong mang chiêu đố kỵ. Kỵ ở cung quá quang huy (Tỵ/Ngọ — chói mắt, dễ đố kỵ); hợp Dần Mão (hừng nhật) chủ dễ chuyển quý thành phú; Tuất Hợi (thất huy) thì tiềm phát u quang, cần Khôi Việt cận quý. Ở cung quang huy KHÔNG thành phú cục, chỉ danh lớn hơn lợi.",
+  "Cự Môn|Hóa Lộc": "(Tân) Ám diệu, cát hung đều chủ lao tâm — hóa Lộc vẫn phải lao tâm lao lực mà tiến tài. Thích Tả Hữu Khôi Việt (bớt nhọc). Thạch trung ẩn ngọc + hóa Lộc rất đẹp, phú mà người đời thường không ngờ. Có tổ hợp chủ được ngoại tộc/dị vực trọng dụng (tốt khi hội Thái Dương hóa Quyền, cả hai không hãm). Chủ miệng sinh tài. Kỵ Văn Xương hóa Kỵ xung (tiến tài kèm phá hao). Lục thân thích gặp (tình thâm, nhất là được Thái Dương nhập miếu chiếu).",
+  "Thiên Lương|Hóa Lộc": "(Nhâm) Ấm tinh hóa Lộc chỉ lợi ở phụ mẫu chi ấm (kế thừa/cơ nghiệp sẵn), không lợi quan quý chi ấm — nên thích Khôi Việt bù vào. Hợp phát triển nghiệp gia tộc hoặc phục vụ cơ quan có danh. Nhưng trừ nghề công ích/vì người giải nạn (luật sư, bác sĩ, kế toán), nếu mưu tư lợi thì dễ vì tiền sinh phiền/thành cớ bị công kích. Di chuyển cung + Thiên Mã thì hợp buôn bán nơi xa/ngoại quốc, đắc Lộc Tồn thành đại phú. Kỵ ở lục thân (tranh chấp tài).",
+  "Phá Quân|Hóa Lộc": "(Quý) Khử cũ đổi mới, biên độ thay đổi lớn — hóa Lộc thì thay đổi thường có lợi, kể cả sau tỏa chiết vẫn mở cục diện mới tốt hơn. Mệnh/Tài/Quan gặp thì có thể thuận theo đà tìm biến đổi (không nhất thiết mất thu nhập). Tối kỵ Địa Không/Kiếp đồng độ (ba động cực lớn, có khi lung lay gốc rễ rồi mới tìm ra lối thoát). Chủ thích hợp tác (nên thích Tả Hữu); chủ bất thủ nhất nghiệp, hay kiêm chức/kiêm nghiệp. Huynh đệ cung có hai nghĩa trái ngược: hợp tác đắc tài HOẶC bị khống chế tài quyền.",
+
+  // --- Nhóm HÓA QUYỀN ---
+  "Phá Quân|Hóa Quyền": "(Giáp) Sức đột phá khai sáng tăng mạnh, chủ động tìm thay đổi dù hoàn cảnh đang ổn — người bận rộn không yên. Mệnh/Quan hợp võ chức, công nghiệp, việc mạo hiểm; có Khôi Việt Tả Hữu Thiên Hình Tam Thai Bát Tọa thì võ chức vinh thân, hội Liêm Trinh hóa Lộc thì phú quý song toàn. KHÔNG chủ phú (danh lớn hơn lợi). Ở lục thân thường TĂNG tính khắc (vd phu thê vẫn chủ chia ly dù hóa Quyền). + Kình/Thiên Hình chủ mổ xẻ.",
+  "Thiên Lương|Hóa Quyền": "(Ất) Thanh quý, hóa Quyền hơn hóa Lộc — phát huy bản chất giám sát/quản lý, hợp chuyên môn (kiểm toán, thiết kế, kế hoạch, y). Nhưng kém hóa Khoa: gặp sát hao dễ chủ quan, cố chấp. Cần Thái Dương nhập miếu chiếu mới hợp làm việc đối diện đám đông/truyền thông; Thái Dương hãm thì bất lợi. Di chuyển + Lộc Mã chủ ngoại phương đắc tài nhờ thành tín. Cô khắc không giảm; phu thê chủ lệch tuổi lớn hơn, tử nữ dễ sảy.",
+  "Thiên Cơ|Hóa Quyền": "(Bính) Phù động chuyển thành linh hoạt, cơ xảo — tính chất cải thiện, nguồn tài đỡ bất ổn hơn hóa Lộc. Tăng sức mưu lược/kế hoạch; hợp Văn Xương hóa Khoa thì lấy mưu lược thành danh, cơ nguyệt đồng lương hợp chuyên môn/tham mưu. Kỵ Hỏa Linh (cơ xảo nhuộm hư phù, phô trương). Hay kiêm nghề/kiêm chức. Tăng đầu tư đầu cơ — cát thì thắng, sát thì hỏng. Ở lục thân TĂNG ổn định (giảm chia ly, giảm sảy thai).",
+  "Thiên Đồng|Hóa Quyền": "(Đinh) Thường KHÔNG bằng hóa Lộc vì hóa Quyền là lao khổ nhiều hơn — nhưng vất vả rồi tất thành. Đẹp nhất khi đồng Lộc Tồn (nhọc mà dễ đắc tài, thành phú cục). Rất nhạy sát Không Kiếp; đồng/xung Cự Môn hóa Kỵ thì thị phi thầm ngầm, việc gần thành hay bị phá. Có cát thì tình cảm ổn định trầm tĩnh; có sát Không Kiếp thì dễ hư mà khí nhỏ dễ đầy. Nhẹ bớt nhu nhược (thêm cương khí).",
+  "Thái Âm|Hóa Quyền": "(Mậu) Hợp quản/vận dụng tài bạch (kế hoạch thị trường, tài chính, kiểm toán) — người mệnh này hợp quản tiền cho người, KHÔNG hẳn tự có đại phú. Phải NHẬP MIẾU; lạc hãm thì chỉ nắm quyền hư hay làm công. Thường hội Thiên Cơ hóa Kỵ: có sát thì nghề lao tâm/kỹ nghệ, vô sát vẫn dễ thay người giữ tiền mà tự thu không nhiều. Cần xem kỹ Phúc đức. Ở lục thân (nữ thân): kỵ Không Kiếp, kỵ Hỏa-Đà (lụy vì nữ thân).",
+  "Tham Lang|Hóa Quyền": "(Kỷ) Giao tế chủ động và mạnh hơn — tốt/xấu phải xem có Lộc hội không. Tốt nhất đồng Vũ Khúc hóa Lộc, vô Không Kiếp tứ sát thì chủ động giao tế mà được lợi; vô Lộc thì tốn thời gian tiền bạc. Thành Hỏa/Linh Tham thì hóa Quyền KHÔNG bằng hóa Lộc (chỉ phong quang bề mặt, dễ đầu cơ). Ưu điểm: TĂNG ỔN ĐỊNH, bớt biến động, cạnh tranh dễ chiếm ưu thế. + đào hoa thì hướng nghệ thuật/giải trí.",
+  "Vũ Khúc|Hóa Quyền": "(Canh) Lấy HÀNH ĐỘNG sinh tài, phải tự tay xử lý nghiệp vụ — chủ vất vả. Chủ lấy sự nghiệp cầu tài (tài nhiều ít theo cục diện/chức vị). Dễ được cấp trên đề bạt. Kém hóa Lộc vì chỉ hợp cách mới chủ có thành tựu; cần thêm Lộc Tồn mới đủ điều kiện thành phú. + sát thì hợp kỹ thuật/dụng cụ kim loại; + Không Kiếp thì mở xưởng dùng máy móc. Lục thân: giảm khắc nhưng không đổi tình cảm; phu thê (nam) TĂNG phụ đoạt phu quyền.",
+  "Thái Dương|Hóa Quyền": "(Tân) Hơn hóa Lộc về bản chất — chuyên chú sự nghiệp, lấy địa vị xã hội/chuyên môn mà thành. + Cự Môn hóa Lộc (đồng/đối) chủ dị tộc sinh tài, hợp ngoại giao/cơ quan nước ngoài. Thành Dương Lương Xương Lộc thì tăng địa vị học thuật, lợi phát minh độc quyền. Tính độc lập/khai sáng tăng nhưng cũng thích được vỗ tay — dễ tiến thủ sai thời điểm, cần chọn năm nên ẩn. + Văn Xương hóa Kỵ (không thành cách) thì xử sự nhẹ dạ, quyết định thiếu cân nhắc.",
+  "Tử Vi|Hóa Quyền": "(Nhâm) Đế tọa nắm thực quyền — quyết đoán và lãnh đạo tăng, độc đương một cõi; nhưng chủ quan hơn, ít nghĩ cho người. PHẢI có Tả Hữu mới bớt vất vả (không thì tự làm mọi việc, công vô ích). PHẢI có Lộc Tồn hội mới quý (vì Tài bạch tất có Vũ Khúc hóa Kỵ — vô Lộc thì cảnh đẹp mà ruột rỗng). + sát thì như vua gần tiểu nhân (đa nghi, tật khí); + Xương Khúc dễ thông minh tự ngộ. Lục thân: thường chủ quan, kỵ ở phu thê.",
+  "Cự Môn|Hóa Quyền": "(Quý) Ám diệu — hóa Quyền hơn hóa Lộc: khẩu tài hay mà không ngọt sáo, nói có trọng lượng. Tránh xuất phong đầu/đi đường tắt, nếu trầm mình rèn giũa thì danh lợi tự đến. Thái Âm đồng thời hóa Khoa; nếu cả Nhật Nguyệt nhập miếu thì thành cấu trúc đẹp, phú quý. Kỵ Hỏa Linh đồng độ. Lục thân: nhìn chung TỐT hơn không hóa Quyền (huynh đệ tạo nghiệp, phu thê được vợ đảm, tử nữ tú tài, bạn có trực hữu). Chủ miệng/hầu/đường hô hấp, gặp sát mới bệnh."
+};
+
+/**
+ * Lọc Tứ Hóa CHI TIẾT cho đúng các cặp (chính tinh × loại Hóa) thực có.
+ * Truyền vào mảng cặp dạng { star, hoa } (hoa đã bỏ tiền tố "Lưu ").
+ */
+export function getDamTinhTuHoaDetail(pairs: { star: string; hoa: string }[]): string {
+  const seen = new Set<string>();
+  const blocks: string[] = [];
+  for (const p of pairs) {
+    const star = String(p?.star || "").trim();
+    const hoa = String(p?.hoa || "").replace(/^Lưu\s+/u, "").trim();
+    if (!star || !hoa) continue;
+    const key = star + "|" + hoa;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const text = DAM_TINH_TU_HOA_DETAIL[key];
+    if (text) {
+      blocks.push("  - " + star + " " + hoa + ": " + text);
+    }
+  }
+  return blocks.length > 0
+    ? blocks.join("\n")
+    : "  - Khong co cap (chinh tinh x Hoa) chi tiet nao khop du lieu Dam Tinh hien co.";
 }
