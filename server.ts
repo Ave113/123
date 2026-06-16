@@ -4,7 +4,7 @@ import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 import { TU_HOA_BY_STEM, HOA_LABELS } from "./src/utils/tuHoa";
-import { getDamTinhForStars } from "./src/knowledge/damTinh";
+import { getDamTinhForStars, getDamTinhForAuxStars, getDamTinhTuHoaDetail } from "./src/knowledge/damTinh";
 
 dotenv.config();
 
@@ -318,6 +318,18 @@ async function startServer() {
       });
       const damTinhStr = getDamTinhForStars(allMajorStarNames);
 
+      // ===== ĐÀM TINH: PHỤ/TẠP TINH (trần ngân sách mềm chống phình prompt) =====
+      // Gom TÊN phụ/tá/sát/tạp diệu thực có (minor + adjective) toàn lá số, rồi CHỈ lấy
+      // phần Đàm Tinh của chúng. getDamTinhForAuxStars tự giới hạn số entry (mặc định 18,
+      // rộng rãi) và ghi chú nhẹ khi vượt, KHÔNG nhồi toàn bộ file tri thức.
+      const allAuxStarNames: string[] = [];
+      palacesArr.forEach((p: any) => {
+        [...(p.minorStars || []), ...(p.adjectiveStars || [])].forEach((s: any) => {
+          allAuxStarNames.push(String(s.name || "").trim());
+        });
+      });
+      const damTinhAuxStr = getDamTinhForAuxStars(allAuxStarNames);
+
       // ===== PHI TỨ HÓA ĐỘNG: ĐẠI VẬN & LƯU NIÊN (code tính sẵn) =====
       // Khác với Phi Tứ Hóa tĩnh (theo can bản cung), đây là đường bay theo CAN Đại vận
       // (can của cung đại hạn) và CAN Lưu niên (can năm xem hạn) — mới là dòng khí đang
@@ -351,6 +363,22 @@ async function startServer() {
       const transitYearNum = Number(chartData.transitYear) || 2026;
       const luuNienStem = STEM_BY_YEAR_MOD[((transitYearNum % 10) + 10) % 10];
       const luuNienFlyingStr = buildFlyingTuHoaFor(luuNienStem, `Lưu niên (năm ${transitYearNum}, can ${luuNienStem})`);
+
+      // ===== ĐÀM TINH: TỨ HÓA CHI TIẾT THEO CẶP (chính tinh thụ hóa × loại Hóa) =====
+      // ĐẶT SAU khi decadalStem/luuNienStem đã khai báo (tránh lỗi temporal dead zone).
+      // CHỈ ĐỌC LẠI dữ liệu tứ hóa ĐÃ TÍNH SẴN (natal + can Đại vận + can Lưu niên),
+      // KHÔNG tính mới, KHÔNG đổi công thức. TU_HOA_BY_STEM[can] = [Lộc, Quyền, Khoa, Kỵ]
+      // theo đúng thứ tự HOA_LABELS, nên ghép star[i] với HOA_LABELS[i] để ra đúng cặp.
+      const collectTuHoaPairs = (table?: string[]) =>
+        (table || []).map((star, i) => ({ star, hoa: HOA_LABELS[i] }));
+      const decadalTuHoaTable = decadalStem ? TU_HOA_BY_STEM[String(decadalStem).trim()] : undefined;
+      const luuNienTuHoaTable = luuNienStem ? TU_HOA_BY_STEM[String(luuNienStem).trim()] : undefined;
+      const damTinhTuHoaPairs = [
+        ...collectTuHoaPairs(natalTuHoaTable),
+        ...collectTuHoaPairs(decadalTuHoaTable),
+        ...collectTuHoaPairs(luuNienTuHoaTable),
+      ];
+      const damTinhTuHoaDetailStr = getDamTinhTuHoaDetail(damTinhTuHoaPairs);
 
       const prompt = `Bạn là một Minh Sư Tử Vi Tứ Hóa & Tam Hợp Môn danh tiếng lừng lẫy thuộc trường phái thực chiến của Khâm Thiên Môn (Đài Loan), kết hợp nhuần nhuyễn với chiều sâu triết lý Nhân Quả cổ học Việt Nam. Bạn đóng vai trò là một người THẦY CÓ TÂM, chân thành nhưng vô cùng uy nghiêm, tuân thủ nguyên tắc tối thượng: "NÓI THẬT & TRỰC DIỆN ⚡" - Có Cát luận Cát, có Hung luận Hung, thẳng thắn thấu đáo bất vị nể, không vuốt ve xoa dịu vô nghĩa, không hù dọa trục lợi mà chỉ rõ gốc rễ sinh mệnh để đương số tự xoay chuyển dòng năng lượng nghiệp quả.
 
@@ -482,6 +510,14 @@ ${cachCucReportStr}
 --- TINH TÌNH CHÍNH TINH THEO ĐÀM TINH (TRUNG CHÂU PHÁI — VƯƠNG ĐÌNH CHI) ---
 Dưới đây là tính chất (tinh tình) của các CHÍNH TINH thực sự có trên lá số này, trích từ bộ 《王亭之談星》. Đây là tài liệu tham khảo để luận SÂU bản chất sao theo tinh thần trọng tinh tình của Trung Châu Phái, KHÔNG phải để chép lại khô khan. Hãy đan cài tinh tình này với vị trí cung, miếu/hãm, tứ hóa và tam phương tứ chính đã tính sẵn. VẪN PHẢI bám đúng các sao thực có trên lá số; không vì tài liệu này mà nhắc đến sao không tồn tại:
 ${damTinhStr}
+
+--- TINH TÌNH PHỤ/TẠP TINH THEO ĐÀM TINH (TRUNG CHÂU PHÁI) ---
+Dưới đây là tinh tình của các phụ/tá/sát/tạp diệu thực có trên lá số (đã lọc sẵn, ưu tiên theo mức ảnh hưởng và có trần ngân sách để prompt không phình). Đây là NGUYÊN LIỆU NỀN: hãy đan cài với chính tinh đồng cung, miếu/hãm và tam phương tứ chính để ra kết luận động, KHÔNG chép khô khan từng sao:
+${damTinhAuxStr}
+
+--- TINH TÌNH TỨ HÓA CHI TIẾT THEO CẶP (CHÍNH TINH THỤ HÓA × LOẠI HÓA) ---
+Dưới đây là tinh tình của ĐÚNG các cặp (chính tinh × Hóa) thực sự xuất hiện trên lá số này, gồm Tứ Hóa bẩm sinh và phi hóa Đại vận/Lưu niên (đã tính sẵn ở các phần trên). Dùng để luận SÂU sắc thái riêng của từng sao khi thụ Hóa theo từng can, KHÔNG chép khô khan: hãy ghép với cung vị nơi sao thụ hóa đang đóng (đã có ở bảng Tứ Hóa) và tam phương tứ chính để ra kết luận động về đương số:
+${damTinhTuHoaDetailStr}
 
 --- KHUNG LUẬN GIẢI CHƯƠNG TRÌNH CHI TIẾT ---
 
