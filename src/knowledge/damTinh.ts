@@ -199,7 +199,7 @@ export const DAM_TINH_TU_HOA: Record<string, DamTinhEntry> = {
  * Lọc tri thức Đàm Tinh cho phụ/tá/sát/tạp diệu CÓ trên lá số.
  * Quét đủ minor + adjective; KHÔNG nhồi toàn bộ DAM_TINH_AUX.
  */
-export function getDamTinhForAuxStars(starNames: string[], maxEntries: number = 18): string {
+export function getDamTinhForAuxStars(starNames: string[], maxEntries: number = 12): string {
   const seen = new Set<string>();
   const blocks: string[] = [];
   let matched = 0;
