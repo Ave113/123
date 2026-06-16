@@ -373,10 +373,12 @@ async function startServer() {
         (table || []).map((star, i) => ({ star, hoa: HOA_LABELS[i] }));
       const decadalTuHoaTable = decadalStem ? TU_HOA_BY_STEM[String(decadalStem).trim()] : undefined;
       const luuNienTuHoaTable = luuNienStem ? TU_HOA_BY_STEM[String(luuNienStem).trim()] : undefined;
+      // Chỉ lấy Tứ Hóa NATAL ở tầng tinh tình chi tiết. Đường bay đại vận/lưu niên
+      // đã có ở block "Phi Tứ Hóa động" (decadalFlyingStr/luuNienFlyingStr), nên bỏ ở
+      // đây để tránh trùng lặp làm phình prompt (decadalTuHoaTable/luuNienTuHoaTable
+      // vẫn giữ khai báo vì còn dùng cho phần phi hóa động).
       const damTinhTuHoaPairs = [
         ...collectTuHoaPairs(natalTuHoaTable),
-        ...collectTuHoaPairs(decadalTuHoaTable),
-        ...collectTuHoaPairs(luuNienTuHoaTable),
       ];
       const damTinhTuHoaDetailStr = getDamTinhTuHoaDetail(damTinhTuHoaPairs);
 
