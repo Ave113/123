@@ -591,6 +591,75 @@ Bạn phải bám sát 100% dữ liệu thực tế đóng trong 12 cung của l
       };
       const phucDucReportStr = buildPhucDucReport();
 
+      // ===== VÒNG TRƯỜNG SINH 12 (code gom sẵn từ changsheng12) =====
+      // Thế đất của mỗi cung trọng yếu: sao dù tốt nhưng đóng cung suy/tử/tuyệt thì
+      // giảm lực (hữu danh vô thực); đóng trường sinh/đế vượng thì phát huy trọn vẹn.
+      // Chỉ đọc lại changsheng12 đã có, KHÔNG tính mới. AI luận nghĩa mạnh/yếu.
+      const TRUONG_SINH_MANH = ["Trường Sinh", "Đế Vượng", "Lâm Quan", "Quan Đới"].map((s) => s.toLowerCase());
+      const TRUONG_SINH_YEU = ["Tử", "Tuyệt", "Mộ", "Bệnh", "Suy", "Thai"].map((s) => s.toLowerCase());
+      const classifyTheDat = (cs: string): string => {
+        const v = String(cs || "").trim().toLowerCase();
+        if (!v) return "chưa rõ";
+        if (TRUONG_SINH_MANH.includes(v)) return "MẠNH (sao phát huy trọn lực)";
+        if (TRUONG_SINH_YEU.includes(v)) return "YẾU (dễ hữu danh vô thực, lực suy giảm)";
+        return "TRUNG BÌNH";
+      };
+      const buildTruongSinhReport = (): string => {
+        const targets = ["Mệnh", "Tài Bạch", "Quan Lộc", "Phúc", "Thân", "Phu Thê", "Tật Ách"];
+        const lines: string[] = [];
+        const seen = new Set<string>();
+        targets.forEach((kw) => {
+          const p = palaceByName(kw);
+          if (!p || seen.has(p.name)) return;
+          seen.add(p.name);
+          const cs = p.changsheng12 || "";
+          lines.push(`  - ${p.name} (${BRANCHES_VI[toBranchIndex(p.index)]}): vòng Tràng Sinh = ${cs || "chưa rõ"} → ${classifyTheDat(cs)}`);
+        });
+        return lines.length > 0
+          ? lines.join("\n")
+          : "  - Dữ liệu vòng Tràng Sinh chưa đầy đủ trên lá số.";
+      };
+      const truongSinhReportStr = buildTruongSinhReport();
+
+      // ===== ĐẾM CÁT/HUNG ĐỂ ĐỊNH CÁCH PHÚ QUÝ (code đếm khách quan) =====
+      // Đếm số cát tinh phúc lộc vs hung sát ở tam phương trục cốt (Mệnh-Tài-Quan-Phúc),
+      // làm cơ sở để AI chấm "tầng phúc lộc" tổng thể. CODE KHÔNG tự phán giàu/nghèo —
+      // chỉ đếm & liệt kê sao thực có; AI mới luận kết.
+      const CAT_PHUC_STARS = [
+        "Lộc Tồn", "Hóa Lộc", "Hóa Quyền", "Hóa Khoa", "Tả Phụ", "Hữu Bật",
+        "Văn Xương", "Văn Khúc", "Thiên Khôi", "Thiên Việt", "Thiên Mã", "Thiên Quan", "Thiên Phúc",
+      ].map(normalizeStarName);
+      const HUNG_SAT_STARS = [
+        "Hóa Kỵ", "Địa Không", "Địa Kiếp", "Kình Dương", "Đà La", "Hỏa Tinh", "Linh Tinh",
+        "Kiếp Sát", "Đại Hao", "Tiểu Hao", "Thiên Hình",
+      ].map(normalizeStarName);
+      const buildPhucLocReport = (): string => {
+        const menh = palaceByName("Mệnh");
+        if (!menh) return "  - Không xác định được cung Mệnh nên chưa đếm được cát/hung.";
+        const bMenh = toBranchIndex(menh.index);
+        // Tam phương Mệnh-Tài-Quan + xung chiếu + Phúc Đức
+        const idxs = new Set<number>([bMenh, (bMenh + 4) % 12, (bMenh + 8) % 12, (bMenh + 6) % 12]);
+        const phuc = palaceByName("Phúc");
+        if (phuc) idxs.add(toBranchIndex(phuc.index));
+        const catFound: string[] = [];
+        const hungFound: string[] = [];
+        idxs.forEach((bi) => {
+          const pa = palaceByBranch[bi];
+          if (!pa) return;
+          allStarsOf(pa).forEach((s: any) => {
+            const n = normalizeStarName(s.name);
+            if (CAT_PHUC_STARS.includes(n)) catFound.push(s.name);
+            else if (HUNG_SAT_STARS.includes(n)) hungFound.push(s.name);
+          });
+        });
+        return [
+          `  - Phạm vi đếm: tam phương Mệnh-Tài-Quan + xung chiếu + Phúc Đức.`,
+          `  - Cát tinh phúc lộc (${catFound.length}): ${catFound.length ? catFound.join(", ") : "không đáng kể"}`,
+          `  - Hung sát tinh (${hungFound.length}): ${hungFound.length ? hungFound.join(", ") : "không đáng kể"}`,
+        ].join("\n");
+      };
+      const phucLocReportStr = buildPhucLocReport();
+
       const prompt = `--- DỮ LIỆU THÔNG TIN LÁ SỐ ĐƯƠNG SỐ ---
 - Giới tính: ${genderStr}
 - Ngày dương lịch: ${chartData.solarDate} (Giờ sinh: ${chartData.solarTime})
@@ -681,6 +750,14 @@ ${phucDucReportStr}
 Hệ thống đã an sẵn cung an trú của từng tháng âm lịch trong năm xem hạn (theo Đẩu Quân) cùng can tháng và đường phi Lưu Nguyệt Tứ Hóa (Lộc/Quyền/Khoa/Kỵ của tháng đó đáp vào sao nào, cung nào). Dùng cho Phần 7. Dữ liệu tính sẵn:
 ${luuNguyetReportStr}
 
+--- CHEAT SHEET: VÒNG TRƯỜNG SINH (THẾ ĐẤT SAO MẠNH/YẾU — HỆ THỐNG GOM SẴN) ---
+Mỗi cung trọng yếu đứng ở một thế đất của vòng Tràng Sinh 12. Nguyên tắc: sao dù tốt nhưng đóng cung YẾU (Tử/Tuyệt/Mộ/Bệnh/Suy/Thai) thì giảm lực, dễ HỮU DANH VÔ THỰC; đóng cung MẠNH (Trường Sinh/Đế Vượng/Lâm Quan/Quan Đới) thì phát huy trọn vẹn. Dùng để hiệu chỉnh mức độ mạnh/yếu khi luận sao ở Phần 1, 2 và 9 — tránh khen quá lời sao tốt đang ở thế đất suy:
+${truongSinhReportStr}
+
+--- CHEAT SHEET: ĐẾM CÁT/HUNG ĐỊNH CÁCH PHÚ QUÝ (HỆ THỐNG ĐẾM SẴN) ---
+Hệ thống đã đếm số cát tinh phúc lộc và hung sát tinh ở tam phương trục cốt (Mệnh-Tài-Quan + xung chiếu + Phúc Đức). Đây là cơ sở KHÁCH QUAN để chấm tầng phúc lộc tổng thể ở Phần 10; con số chỉ là gợi ý, phải đặt trong bối cảnh miếu/hãm, cách cục và thế đất Tràng Sinh để luận cho đúng, KHÔNG chỉ đếm số rồi kết luận máy móc:
+${phucLocReportStr}
+
 --- TINH TÌNH CHÍNH TINH THEO ĐÀM TINH (TRUNG CHÂU PHÁI — VƯƠNG ĐÌNH CHI) ---
 Dưới đây là tính chất (tinh tình) của các CHÍNH TINH thực sự có trên lá số này, trích từ bộ 《王亭之談星》. Đây là tài liệu tham khảo để luận SÂU bản chất sao theo tinh thần trọng tinh tình của Trung Châu Phái, KHÔNG phải để chép lại khô khan. Hãy đan cài tinh tình này với vị trí cung, miếu/hãm, tứ hóa và tam phương tứ chính đã tính sẵn. VẪN PHẢI bám đúng các sao thực có trên lá số; không vì tài liệu này mà nhắc đến sao không tồn tại:
 ${damTinhStr}
@@ -699,7 +776,7 @@ ${damTinhTuHoaDetailStr}
 
 --- KHUNG LUẬN GIẢI CHƯƠNG TRÌNH CHI TIẾT ---
 
-Bạn hãy soạn thảo bình giải chi tiết gồm 8 phần lớn sau đây bằng chữ quốc ngữ cực kỳ sâu sắc, phân tích chính xác từng sao và kết nối liên hoàn:
+Bạn hãy soạn thảo bình giải chi tiết gồm 10 phần lớn sau đây bằng chữ quốc ngữ cực kỳ sâu sắc, phân tích chính xác từng sao và kết nối liên hoàn:
 
 1. **TAM PHƯƠNG TỨ CHÍNH & THẾ ĐỨNG LÁ SỐ (BẢN SẮC CẤU TRÚC Ý THỨC & 8 PHẦN CHIỀU SÂU - PHẢN XẠ CHỦ QUAN)**:
    Mổ xẻ sâu sắc tính cách bẩm sinh của đương số bằng cách liên kết chặt chẽ cung Mệnh với 3 cung vị vây quanh học thuyết Tam Phương Tứ Chính: Thiên Di (đối cung), Quan Lộc (tam hợp), Tài Bạch (tam hợp). Bạn hãy trích xuất trực tiếp tên các sao đóng ở ba cung vị này của họ để phân tích điểm sáng, điểm hiểm nghệ thuật hành xử bấy lâu và điểm mù cốt lõi bẩm sinh. Chỉ rõ nghiệp lý nhân quả đã tự định hình từ thói phản xa bộc trực không tự biết của họ bấy lâu nay.
@@ -727,10 +804,16 @@ Bạn hãy soạn thảo bình giải chi tiết gồm 8 phần lớn sau đây 
 6. **SỨC KHỎE TẬT ÁCH & THIÊN DI PHỊ HẠN CHỦ ĐỘNG PHÒNG NGỪA**:
    Phân tích Cung Tật Ách song chiếu cùng Thiên Di và quan hệ Nhị Hợp, Lục hại rình rập để khuyên bảo đương số phòng ngừa hao tổn sinh căn lực lượng, dịch chuyển xuất ngoại chủ động phòng trừ nguy biến pháp lý tai ương.
 
-7. **LỊCH LƯU NGUYỆT 12 THÁNG ÂM: CÁT HUNG TỪNG THÁNG TRONG NĂM ${chartData.transitYear || 2026}**:
+7. **THÁNG TRỌNG TÂM TRONG NĂM ${chartData.transitYear || 2026}: TIỀN BẠC, SỨC KHỎE, CÔNG VIỆC, TÌNH CẢM**:
    Dựa TRỰC TIẾP vào cheat sheet "LƯU NGUYỆT — 12 CUNG THÁNG ÂM LỊCH" đã được hệ thống an sẵn (mỗi tháng âm đáp vào cung nào, can tháng nào, và Lưu Nguyệt Tứ Hóa Lộc/Quyền/Khoa/Kỵ của tháng đó bay vào sao/cung nào). TUYỆT ĐỐI không tự nhẩm lại cung tháng hay can tháng; nếu hệ thống báo thiếu dữ liệu thì nói rõ thiếu, không bịa.
-   Hãy luận thành một LỊCH HÀNH ĐỘNG cực kỳ ĐỜI THỰC, nêu RÕ TỪNG THÁNG cụ thể được hay mất CÁI GÌ — TUYỆT ĐỐI KHÔNG dùng ngôn ngữ chung chung kiểu "tháng tiến công / tháng phòng thủ".
-   NGUYÊN TẮC SUY SỰ VIỆC (bắt buộc): KHÔNG dùng câu mẫu cố định cho mọi người. Với MỔI tháng, hãy nhìn CHÍNH CÙNG và sao mà Lưu Nguyệt Tứ Hóa của tháng đó đáp vào để suy ra ĐÚNG lĩnh vực đời sống bị động:
+   CÁCH TRÌNH BÀY (bắt buộc): TUYỆT ĐỐI KHÔNG liệt kê đều cả 12 tháng. Hãy QUÉT qua 12 tháng đã tính sẵn, RÚT RA các tháng trọng tâm rồi GOM theo CHỦ ĐỀ, chỉ nói những tháng thật sự đáng chú ý (có Lưu Lộc/Quyền/Khoa hoặc Lưu Kỵ đáp vào cung quan trọng). Trình bày theo các mục nhỏ, mỗi mục nêu tháng + chuyện cụ thể:
+     - **TIỀN BẠC** (khi Tứ Hóa tháng đáp Tài Bạch/Điền Trạch/Quan Lộc): tháng nào dễ vào tiền (Lộc/Quyền), tháng nào hao tài/siết chi (Kỵ).
+     - **SỨC KHỎE** (khi đáp Tật Ách/Thiên Di): tháng nào cần giữ gìn sức khỏe, coi chừng ốm đau/tai nạn nhỏ (Kỵ), tháng nào thể trạng sảng khoái.
+     - **CÔNG VIỆC / HỌC HÀNH** (khi đáp Quan Lộc/Phụ Mẫu/Nô Bộc): tháng thuận thăng tiến/thi cử, tháng dễ thị phi va chạm.
+     - **TÌNH CẢM / GIA ĐẠO** (khi đáp Phu Thê/Tử Tức/Huynh Đệ): tháng có tin vui tình cảm, tháng dễ lục đục.
+   Nếu một chủ đề trong năm không có tháng nào nổi bật thì nói ngắn gọn "năm nay ít biến động về [chủ đề]", KHÔNG cố bịa tháng cho đủ mục.
+   Nêu sự việc cực kỳ ĐỜI THỰC, RÕ được hay mất CÁI GÌ — TUYỆT ĐỐI KHÔNG dùng ngôn ngữ chung chung kiểu "tháng tiến công / tháng phòng thủ".
+   NGUYÊN TẮC SUY SỰ VIỆC (bắt buộc): KHÔNG dùng câu mẫu cố định cho mọi người. Với MỖI tháng, hãy nhìn CHÍNH CUNG và sao mà Lưu Nguyệt Tứ Hóa của tháng đó đáp vào để suy ra ĐÚNG lĩnh vực đời sống bị động:
      - Tài Bạch → tiền bạc (lương thưởng, thu nhập, chi tiêu, hao hụt)
      - Quan Lộc → công việc, học hành, thi cử, công danh
      - Phu Thê → quan hệ đôi lứa/bạn đời (XEM TUỔI bên dưới)
@@ -743,10 +826,16 @@ Bạn hãy soạn thảo bình giải chi tiết gồm 8 phần lớn sau đây 
      - Thiên Di → đi lại, di chuyển, ra ngoài, môi trường mới
    Tính chất Hóa: Lưu Lộc/Quyền/Khoa → được, thuận, có tin vui ở lĩnh vực đó; Lưu Kỵ → mất, trắc trở, hao tổn, lo lắng ở lĩnh vực đó.
    ĐIỀU CHỈNH THEO TUỔI (bắt buộc, căn cứ Tuổi mụ = ${chartData.transitLunarAge || "chưa rõ"}): ngôn từ phải khớp vòng đời thật của đương số. Nếu còn nhỏ/vị thành niên (dưới ~18): Phu Thê luận thành rung động đầu đời, tình cảm bạn bè khác giới, KHÔNG nói vợ chồng/cưới hỏi/ly hôn; Quan Lộc luận thành học hành thi cử; Tử Tức KHÔNG nói con cái. Nếu đã trưởng thành mà chưa lập gia đình: Phu Thê luận thành chuyện yêu đương, hẹn hò, người đang tìm hiểu. Chỉ nói vợ chồng/con cái/ly hôn khi độ tuổi và bối cảnh hợp lý. Tương tự, người lớn tuổi thì Quan Lộc thiên về công việc/hưu trí thay vì thi cử.
-   VĂN PHONG: dùng ngôn ngữ đời sống hiện đại, gần gũi với ai cũng gặp (lương thưởng, ốm đau, cãi vã, mua sắm, đi lại, học hành, yêu đương); chỉ nhắc đến hợp đồng/giấy tờ/pháp lý KHI bối cảnh lá số cho thấy đương số là người kinh doanh/đầu tư/làm ăn lớn. Ưu tiên nêu bật 3–5 tháng đáng chú ý nhất (cát đậm và hung đậm) để đương số biết tháng nào thuận việc tiền bạc, tháng nào siết chi tiêu, tháng nào giữ lời tránh va chạm, tháng nào lo sức khỏe.
+   VĂN PHONG: dùng ngôn ngữ đời sống hiện đại, gần gũi với ai cũng gặp (lương thưởng, ốm đau, cãi vã, mua sắm, đi lại, học hành, yêu đương); chỉ nhắc đến hợp đồng/giấy tờ/pháp lý KHI bối cảnh lá số cho thấy đương số là người kinh doanh/đầu tư/làm ăn lớn. MỤC TIÊU cuối cùng: để đương số NHỚ NHANH được "năm nay tháng nào lo tiền, tháng nào lo sức khỏe, tháng nào thuận việc, tháng nào vui chuyện tình cảm" — gọn, trọng tâm, không dàn trải.
 
 8. **CUNG PHÚC ĐỨC: GỐC AN - BẤT AN & PHÚC BÁO HƯỞNG THỤ**:
    Dùng cheat sheet "CỤM SAO PHÚC ĐỨC" làm trục chính (kết hợp tam phương tứ chính, nhị hợp lục hại vây quanh đã tính sẵn) để mổ xẻ chất lượng đời sống tinh thần, mức độ an hay bất an tự thân, phúc báo thừa hưởng và năng lực hưởng thụ thành quả của đương số. Theo tinh thần Trung Châu Phái: Phúc Đức tốt thì dù vất vả vẫn thấy đáng, lòng thanh thản; Phúc Đức gặp sát kỵ thì dễ tự dằn vặt, suy nghĩ tiêu cực, hưởng phúc không trọn dù tiền tài có dư. Chỉ rõ đương số cần tu dưỡng nội tâm điểm nào để gốc phúc dày thêm thay vì tự bào mòn an lạc.
+
+9. **THẾ ĐẤT VÒNG TRÀNG SINH: SAO MẠNH HAY YẾU, THỰC LỰC HAY HỮU DANH VÔ THỰC**:
+   Dùng cheat sheet "VÒNG TRƯỜNG SINH" đã tính sẵn để hiệu chỉnh mức độ mạnh/yếu của sao theo thế đất. Đây là tầng tinh tế của thầy giỏi: một chính tinh đẹp (vd Tử Vi, Thiên Phủ) nhưng đóng cung Tử/Tuyệt/Mộ thì lực bị rút, dễ HỮU DANH VÔ THỰC (có tiếng mà không có miếng, khởi đầu hay mà cuối đuối sức); ngược lại sao ở Trường Sinh/Đế Vượng thì phát huy trọn vẹn, có hậu. Hãy đối chiếu thế đất của Mệnh, Tài, Quan, Phúc để chỉ rõ lĩnh vực nào của đương số có thực lực bền, lĩnh vực nào chỉ hào nhoáng bề ngoài hay dễ đuối về sau — để liệu sức mà tiến lui, không ảo tưởng vào cái danh suông.
+
+10. **ĐỊNH CÁCH PHÚ QUÝ BẦN TIỆN — CÂU KẾT TỔNG LỰC MỆNH**:
+   Đây là PHẦN CHỐT HẠ cuối bài. Dùng cheat sheet "ĐẾM CÁT/HUNG ĐỊNH CÁCH PHÚ QUÝ" kết hợp cách cục chính tinh, miếu/hãm và thế đất Tràng Sinh ở trên để ĐÚC KẾT một nhận định tổng về tầng phúc lộc của đương số: cốt cách thuộc tầng nào (phúc hậu / trung bình khá / lao tâm vất vả / thăng trầm lớn), điểm sáng nhất để nương vào và điểm hiểm nhất phải cảnh chừng cả đời. TUYỆT ĐỐI không phán máy móc theo số đếm (vd "5 cát 2 hung nên giàu") — con số chỉ là gợi ý, phải luận bằng cả chất lượng sao, miếu hãm và thế đất. Viết câu kết bằng giọng đanh thép, thật lòng của một danh sư — vừa thẳng thắn chỉ ra vận mệnh, vừa mở cho đương số con đường đức năng thắng số, tự cải vận bằng tu tâm sửa nết.
 
 Văn phong trình bày bằng Markdown gọn gàng, súc mộc nhưng đanh thép học thuật tột bậc. Mở đầu bằng một câu nói trực diện đầy uy lực xoáy sâu thẳng thắn nhân tính, từ ngữ thấu tỏ hiện đại và tâm can thực thụ của một danh sư hữu tâm!`;
 
