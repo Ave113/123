@@ -467,6 +467,133 @@ Bạn phải bám sát 100% dữ liệu thực tế đóng trong 12 cung của l
           })()
         : "Lá số không đánh dấu Cung Thân đồng cung riêng (Thân đồng cung Mệnh hoặc dữ liệu chưa gắn cờ); luận Thân theo cung Mệnh.";
 
+      // ===== LAI NHÂN CUNG (code phát hiện sẵn — kết cấu khách quan) =====
+      // Lai Nhân Cung là cung mang Thiên can TRÙNG với can năm sinh — nơi được coi là
+      // "nguồn cơn" phát ra toàn bộ tứ hóa bẩm sinh, gốc nghiệp quả cốt lõi. Code chỉ
+      // dò cung có heavenlyStem === can năm sinh; AI luận nghĩa. KHÔNG đổi công thức.
+      const buildLaiNhanReport = (): string => {
+        if (!stemKey) return "  - Chưa xác định được Thiên can năm sinh nên chưa xác định được Lai Nhân Cung.";
+        const target = String(stemKey).trim();
+        const hits = palacesArr.filter((p: any) => String(p.heavenlyStem || "").trim() === target);
+        if (hits.length === 0) {
+          return "  - Không cung nào trùng can năm sinh trên dữ liệu (hiếm); không định Lai Nhân Cung.";
+        }
+        return hits.map((p: any) => {
+          const major = (p.majorStars || []).map((s: any) => s.name).join(", ") || "Vô Chính Diệu";
+          return `  - Lai Nhân Cung: ${p.name} (${BRANCHES_VI[toBranchIndex(p.index)]}, can ${p.heavenlyStem}) — chính tinh: ${major}`;
+        }).join("\n");
+      };
+      const laiNhanReportStr = buildLaiNhanReport();
+
+      // ===== HAI TRỤC TÀI LỘC (code gom sẵn — kết cấu khách quan) =====
+      // Trục SINH TÀI (Mệnh - Tài Bạch - Quan Lộc): cách kiếm tiền, năng lực tạo dòng tiền.
+      // Trục THỦ TÀI (Phúc Đức - Tài Bạch - Điền Trạch): cách GIỮ/TÍCH sản, phúc khí.
+      // Chỉ liệt kê sao thực có ở từng cung để AI phân biệt người kiếm giỏi vs giữ giỏi.
+      const palaceByName = (kw: string) =>
+        palacesArr.find((p: any) => String(p.name || "").includes(kw));
+      const starsOf = (p: any): string => {
+        if (!p) return "(không xác định được cung)";
+        const major = (p.majorStars || []).map((s: any) => s.name).join(", ") || "Vô Chính Diệu";
+        return `${p.name} (${BRANCHES_VI[toBranchIndex(p.index)]}): ${major}`;
+      };
+      const buildHaiTrucTaiLoc = (): string => {
+        const menh = palaceByName("Mệnh");
+        const tai = palaceByName("Tài Bạch") || palaceByName("Tài");
+        const quan = palaceByName("Quan Lộc") || palaceByName("Quan") || palaceByName("Sự Nghiệp");
+        const phuc = palaceByName("Phúc");
+        const dien = palaceByName("Điền");
+        return [
+          `  * Trục SINH TÀI (cách kiếm tiền / tạo dòng tiền) — Mệnh × Tài Bạch × Quan Lộc:`,
+          `     - ${starsOf(menh)}`,
+          `     - ${starsOf(tai)}`,
+          `     - ${starsOf(quan)}`,
+          `  * Trục THỦ TÀI (cách giữ của / tích sản / phúc khí) — Phúc Đức × Tài Bạch × Điền Trạch:`,
+          `     - ${starsOf(phuc)}`,
+          `     - ${starsOf(tai)}`,
+          `     - ${starsOf(dien)}`,
+        ].join("\n");
+      };
+      const haiTrucTaiLocStr = buildHaiTrucTaiLoc();
+
+      // ===== LƯU NGUYỆT: AN 12 CUNG THÁNG ÂM LỊCH (code tính sẵn — KHỐI MỚI) =====
+      // Phép an Đẩu Quân (cung tháng Giêng lưu niên): từ cung Lưu Thái Tuế, đếm NGHỊCH
+      // (tháng sinh âm - 1) cung, rồi đếm THUẬN (index giờ sinh) cung. Mỗi tháng sau tiến
+      // THUẬN 1 cung. Can mỗi tháng suy theo Ngũ Hổ Độn (cặp can năm-tháng cổ truyền).
+      // Đây là khối TÍNH MỚI hoàn toàn, KHÔNG động vào bất kỳ công thức core cũ nào.
+      const luuThaiTueIdxRaw = chartData.transitLuuThaiTueIndex;
+      const birthLunarMonth = Number(chartData.birthLunarMonth) || 0;
+      const birthHourIdx = Number(chartData.birthHourIndex);
+      const hasLuuNguyetData =
+        Number.isInteger(luuThaiTueIdxRaw) && luuThaiTueIdxRaw >= 0 &&
+        birthLunarMonth >= 1 && birthLunarMonth <= 12 &&
+        Number.isInteger(birthHourIdx) && birthHourIdx >= 0;
+
+      // Ngũ Hổ Độn: can tháng Giêng theo can năm. Giáp/Kỷ->Bính, Ất/Canh->Mậu,
+      // Bính/Tân->Canh, Đinh/Nhâm->Nhâm, Mậu/Quý->Giáp. Tháng sau tiến 1 can.
+      const STEMS_VI = ["Giáp", "Ất", "Bính", "Đinh", "Mậu", "Kỷ", "Canh", "Tân", "Nhâm", "Quý"];
+      const monthStemStartByYearStem: Record<number, number> = {
+        0: 2, 5: 2,
+        1: 4, 6: 4,
+        2: 6, 7: 6,
+        3: 8, 8: 8,
+        4: 0, 9: 0,
+      };
+
+      const buildLuuNguyetReport = (): string => {
+        if (!hasLuuNguyetData) {
+          return "  - Thiếu dữ liệu (tháng sinh âm / giờ sinh / cung Lưu Thái Tuế) nên HỆ THỐNG KHÔNG an được 12 cung Lưu Nguyệt. Khi thiếu, KHÔNG tự đoán tháng — hãy nói rõ thiếu dữ liệu.";
+        }
+        const dauQuan = (((luuThaiTueIdxRaw - (birthLunarMonth - 1) + birthHourIdx) % 12) + 12) % 12;
+        // Đưa year%10 (4=Giáp) về index can chuẩn (0=Giáp) để tra Ngũ Hổ Độn.
+        const yearStemIdx = (((transitYearNum % 10) - 4) % 10 + 10) % 10;
+        const monthStemStart = monthStemStartByYearStem[yearStemIdx] ?? 0;
+        const lines: string[] = [];
+        for (let m = 1; m <= 12; m++) {
+          const branchIdx = (dauQuan + (m - 1)) % 12;
+          const pa = palaceByBranch[branchIdx];
+          const palaceName = pa ? pa.name : `cung ${BRANCHES_VI[branchIdx]}`;
+          const monthStemIdx = (monthStemStart + (m - 1)) % 10;
+          const monthStem = STEMS_VI[monthStemIdx];
+          const tuhoa = TU_HOA_BY_STEM[monthStem];
+          let flightStr = "";
+          if (tuhoa) {
+            flightStr = tuhoa.map((star, i) => {
+              const dest = findStarBranch(star);
+              const destLabel = dest >= 0
+                ? `${palaceByBranch[dest]?.name || BRANCHES_VI[dest]}`
+                : "không có";
+              return `${HOA_LABELS[i]}→${star}[${destLabel}]`;
+            }).join("; ");
+          }
+          lines.push(
+            `  - Tháng ${m} âm: cung ${palaceName} (${BRANCHES_VI[branchIdx]}, can tháng ${monthStem})` +
+            (flightStr ? ` | Lưu Nguyệt Tứ Hóa: ${flightStr}` : "")
+          );
+        }
+        return lines.join("\n");
+      };
+      const luuNguyetReportStr = buildLuuNguyetReport();
+
+      // ===== CUNG PHÚC ĐỨC: NEO TRỌNG TÂM RIÊNG (code tóm sẵn) =====
+      // Trục phúc báo / chất lượng tinh thần / hưởng thụ, cực trọng theo Trung Châu Phái.
+      // Chỉ tóm tắt từ dữ liệu cung đã có + tam phương; KHÔNG tính mới.
+      const buildPhucDucReport = (): string => {
+        const phuc = palaceByName("Phúc");
+        if (!phuc) return "  - Không xác định được cung Phúc Đức trên dữ liệu.";
+        const b = toBranchIndex(phuc.index);
+        const major = (phuc.majorStars || []).map((s: any) => s.name).join(", ") || "Vô Chính Diệu";
+        const minor = (phuc.minorStars || []).map((s: any) => String(s.name).replace(/\[SAO LƯU\]\s*/g, "").trim()).join(", ") || "Không";
+        const adj = (phuc.adjectiveStars || []).map((s: any) => s.name).join(", ") || "Không";
+        return [
+          `  - Cụm sao Phúc Đức (${phuc.name}, ${BRANCHES_VI[b]}, can ${phuc.heavenlyStem}):`,
+          `     Chính tinh: ${major} | Trợ/cát tinh: ${minor} | Sát/tạp tinh: ${adj}`,
+          `     Xung chiếu: ${palaceLabel((b + 6) % 12)}`,
+          `     Tam hợp: ${palaceLabel((b + 4) % 12)} | ${palaceLabel((b + 8) % 12)}`,
+          `     Nhị hợp: ${palaceLabel(NHI_HOP[b])} | Lục hại: ${palaceLabel(LUC_HAI[b])}`,
+        ].join("\n");
+      };
+      const phucDucReportStr = buildPhucDucReport();
+
       const prompt = `--- DỮ LIỆU THÔNG TIN LÁ SỐ ĐƯƠNG SỐ ---
 - Giới tính: ${genderStr}
 - Ngày dương lịch: ${chartData.solarDate} (Giờ sinh: ${chartData.solarTime})
@@ -541,6 +668,22 @@ ${tuHoaReportStr}
 Đây là cách cục dựa trên tổ hợp chính tinh tại Mệnh và tam phương tứ chính, do hệ thống nhận diện theo kết cấu khách quan (mọi trường phái đồng thuận). DÙNG TRỰC TIẾP, KHÔNG tự nhận diện lại. QUY TẮC BẮT BUỘC: chỉ được gọi tên một cách cục khi đủ các chính tinh cấu thành nó đã xuất hiện trong dữ liệu; nếu hệ thống ghi "chưa khớp" hoặc "Vô Chính Diệu", TUYỆT ĐỐI không tự gán tên cách cục, mà mô tả theo tổ hợp sao thực tế:
 ${cachCucReportStr}
 
+--- CHEAT SHEET: LAI NHÂN CUNG (HỆ THỐNG PHÁT HIỆN SẴN — GỐC NGHIỆP) ---
+Lai Nhân Cung là cung mang Thiên can trùng với can năm sinh — cổ nhân coi đây là nguồn cơn phát ra toàn bộ tứ hóa bẩm sinh, phản ánh gốc rễ nghiệp quả và động cơ sâu xa nhất của đương số. Khi luận bản sắc (Phần 1), hãy soi cung này để chỉ ra căn nguyên mọi lựa chọn và ám ảnh của đương số bắt rễ từ đâu. Dữ liệu tính sẵn:
+${laiNhanReportStr}
+
+--- CHEAT SHEET: HAI TRỤC TÀI LỘC (HỆ THỐNG GOM SẴN) ---
+Tách bạch hai năng lực khác nhau: trục SINH TÀI (Mệnh-Tài-Quan) là cách KIẾM tiền/tạo dòng tiền; trục THỦ TÀI (Phúc-Tài-Điền) là cách GIỮ của/tích sản. Khi luận tiền tài, BẮT BUỘC phân biệt rõ: đương số kiếm giỏi mà không giữ được, hay giữ chắc mà khó bứt phá, căn cứ vào sao thực ở từng trục:
+${haiTrucTaiLocStr}
+
+--- CHEAT SHEET: CỤM SAO PHÚC ĐỨC (HỆ THỐNG TÓM SẴN) ---
+Phúc Đức là trục phúc báo, chất lượng tinh thần, mức độ an/bất an nội tại và khả năng hưởng thụ của đương số — cực trọng theo Trung Châu Phái. Dùng cho Phần 8:
+${phucDucReportStr}
+
+--- CHEAT SHEET: LƯU NGUYỆT — 12 CUNG THÁNG ÂM LỊCH (HỆ THỐNG AN SẴN) ---
+Hệ thống đã an sẵn cung an trú của từng tháng âm lịch trong năm xem hạn (theo Đẩu Quân) cùng can tháng và đường phi Lưu Nguyệt Tứ Hóa (Lộc/Quyền/Khoa/Kỵ của tháng đó đáp vào sao nào, cung nào). Dùng cho Phần 7. Dữ liệu tính sẵn:
+${luuNguyetReportStr}
+
 --- TINH TÌNH CHÍNH TINH THEO ĐÀM TINH (TRUNG CHÂU PHÁI — VƯƠNG ĐÌNH CHI) ---
 Dưới đây là tính chất (tinh tình) của các CHÍNH TINH thực sự có trên lá số này, trích từ bộ 《王亭之談星》. Đây là tài liệu tham khảo để luận SÂU bản chất sao theo tinh thần trọng tinh tình của Trung Châu Phái, KHÔNG phải để chép lại khô khan. Hãy đan cài tinh tình này với vị trí cung, miếu/hãm, tứ hóa và tam phương tứ chính đã tính sẵn. VẪN PHẢI bám đúng các sao thực có trên lá số; không vì tài liệu này mà nhắc đến sao không tồn tại:
 ${damTinhStr}
@@ -555,11 +698,12 @@ ${damTinhTuHoaDetailStr}
 
 --- KHUNG LUẬN GIẢI CHƯƠNG TRÌNH CHI TIẾT ---
 
-Bạn hãy soạn thảo bình giải chi tiết gồm 6 phần lớn sau đây bằng chữ quốc ngữ cực kỳ sâu sắc, phân tích chính xác từng sao và kết nối liên hoàn:
+Bạn hãy soạn thảo bình giải chi tiết gồm 8 phần lớn sau đây bằng chữ quốc ngữ cực kỳ sâu sắc, phân tích chính xác từng sao và kết nối liên hoàn:
 
 1. **TAM PHƯƠNG TỨ CHÍNH & THẾ ĐỨNG LÁ SỐ (BẢN SẮC CẤU TRÚC Ý THỨC & 8 PHẦN CHIỀU SÂU - PHẢN XẠ CHỦ QUAN)**:
    Mổ xẻ sâu sắc tính cách bẩm sinh của đương số bằng cách liên kết chặt chẽ cung Mệnh với 3 cung vị vây quanh học thuyết Tam Phương Tứ Chính: Thiên Di (đối cung), Quan Lộc (tam hợp), Tài Bạch (tam hợp). Bạn hãy trích xuất trực tiếp tên các sao đóng ở ba cung vị này của họ để phân tích điểm sáng, điểm hiểm nghệ thuật hành xử bấy lâu và điểm mù cốt lõi bẩm sinh. Chỉ rõ nghiệp lý nhân quả đã tự định hình từ thói phản xa bộc trực không tự biết của họ bấy lâu nay.
    Theo tinh thần Trung Châu Phái (trọng tinh tình & cách cục): hãy dùng phần "CÁCH CỤC CHÍNH TINH" đã nhận diện sẵn ở trên làm xương sống định cốt cách bản mệnh, rồi đọc sâu tinh tình (bản chất) của từng chính tinh trong tổ hợp đó thay vì chỉ liệt kê tên sao. Đồng thời soi phần "TỰ HÓA" để chỉ ra các điểm mà năng lượng tự phát lộ hoặc tự hao tổn ngay trong nội tâm đương số.
+   Bắt buộc lồng thêm hai lớp chiều sâu đã được hệ thống tính sẵn: (a) Dựa vào cheat sheet "LAI NHÂN CUNG" để truy về căn nguyên (來因) bẩm sinh — chỉ rõ nguồn cơn sâu xa nhất chi phối mọi lựa chọn và ám ảnh của đương số bắt rễ từ lĩnh vực nào; (b) Đối chiếu trục Mệnh (tư duy bẩm sinh, chủ đạo nửa đầu đời ~trước 30) với Cung Thân (đã neo riêng ở phần "CUNG THÂN" phía trên — hành động/hậu vận, chủ đạo ~sau 30) để vạch trần khúc ngoặt chuyển hóa nội tâm → hành vi mà đương số phải tự biết để tiến lui đúng nhịp.
 
 2. **KRONOS TỨ HÓA (KHOA - QUYỀN - LỘC - KỴ) THEO KINH TOÀN NIÊN CHIẾN LƯỢC**:
    ${natalTuHoaResolved
@@ -567,6 +711,7 @@ Bạn hãy soạn thảo bình giải chi tiết gồm 6 phần lớn sau đây 
      : `Hệ thống chưa tính sẵn được Tứ Hóa bẩm sinh (xem phần LƯU Ý ở trên). Hãy xử lý thận trọng: chỉ suy luận Tứ Hóa nếu xác định chắc chắn được can năm sinh và phải ghi rõ đó là suy luận; nếu không, nói rõ thiếu dữ liệu thay vì bịa vị trí sao.`}
    Hãy luận giải sướng khổ tương ứng tại các cung vị đó. Đặc biệt xới sâu Hóa Lộc (kho tài nguyên vũ trụ ban tặng) và Hóa Kỵ (ải nợ nần, ám ảnh sợ hãi, vết sẹo dằn vặt thẳm sâu).
    Đồng thời phân tích tối thiểu 02 đường phóng Tự Phi Tứ Hóa của các cung then chốt (Cung Mệnh, Cung Tài, Cung Quan) dựa vào dòng "Phi Tứ Hóa" đã tính sẵn trong từng cung, xem chúng tự phi Lộc hay phi Kỵ đi đâu để thấy hành trình luân chuyển dòng khí đời người.
+   Khi luận tiền tài, BẮT BUỘC dùng cheat sheet "HAI TRỤC TÀI LỘC" để tách bạch rõ hai năng lực: trục SINH TÀI (Mệnh-Tài-Quan = cách KIẾM tiền, tạo dòng tiền) và trục THỦ TÀI (Phúc-Tài-Điền = cách GIỮ của, tích sản). Phải chỉ thẳng đương số thuộc kiểu nào: kiếm giỏi mà giữ không nổi (tiền vào tiền ra), hay thủ chắc mà khó bứt phá, căn cứ vào sao thực ở từng trục.
 
 3. **ẢNH HƯỞNG CỦA CÁC ĐỒNG CUNG & SÁT TINH TƯƠNG TÁC CHIẾN LƯỢC**:
    Phát giác và cô lột sự tàn phá của các Sát Tinh hiểm yếu (Địa Không, Địa Kiếp, Kình Dương, Đà La, Hỏa Tinh, Linh Tinh) đóng trên mệnh bàn đương số. Xét mối liên kết Nhị Hợp hoặc Lục Hại của cung bị ám để xem các cơn sóng dữ ngầm rạn nứt phát triển thế nào. Chỉ ra bí quyết tự nén mình cải tâm sửa nết để hóa hung thành cát một cách khoa học thực hành.
@@ -580,6 +725,13 @@ Bạn hãy soạn thảo bình giải chi tiết gồm 6 phần lớn sau đây 
 
 6. **SỨC KHỎE TẬT ÁCH & THIÊN DI PHỊ HẠN CHỦ ĐỘNG PHÒNG NGỪA**:
    Phân tích Cung Tật Ách song chiếu cùng Thiên Di và quan hệ Nhị Hợp, Lục hại rình rập để khuyên bảo đương số phòng ngừa hao tổn sinh căn lực lượng, dịch chuyển xuất ngoại chủ động phòng trừ nguy biến pháp lý tai ương.
+
+7. **LỊCH LƯU NGUYỆT 12 THÁNG ÂM: CÁT HUNG TỪNG THÁNG TRONG NĂM ${chartData.transitYear || 2026}**:
+   Dựa TRỰC TIẾP vào cheat sheet "LƯU NGUYỆT — 12 CUNG THÁNG ÂM LỊCH" đã được hệ thống an sẵn (mỗi tháng âm đáp vào cung nào, can tháng nào, và Lưu Nguyệt Tứ Hóa Lộc/Quyền/Khoa/Kỵ của tháng đó bay vào sao/cung nào). TUYỆT ĐỐI không tự nhẩm lại cung tháng hay can tháng; nếu hệ thống báo thiếu dữ liệu thì nói rõ thiếu, không bịa.
+   Hãy luận thành một LỊCH HÀNH ĐỘNG cực kỳ ĐỜI THỰC, nêu RÕ TỪNG THÁNG cụ thể được hay mất CÁI GÌ — TUYỆT ĐỐI KHÔNG dùng ngôn ngữ chung chung kiểu "tháng tiến công / tháng phòng thủ". Phải gọi đúng sự việc theo cung và Tứ Hóa tháng đáp vào, ví dụ minh họa cách diễn đạt (KHÔNG phải kết quả thật): "Tháng 2 âm Lưu Lộc đáp Tài Bạch → có khoản tiền về, dễ nhận thưởng/chốt được hợp đồng"; "Tháng 4 âm Lưu Kỵ đáp Tài/Điền → hao tài, dễ mất tiền vì sửa nhà hoặc chi đột xuất"; "Tháng 7 âm Lưu Kỵ đáp Quan/Nô → thị phi công việc, dễ vướng tranh chấp giấy tờ"; "Tháng 9 âm Lưu Lộc/Hỷ đáp Phu Thê → tin vui tình cảm, cưới hỏi, gặp quý nhân"; "Tháng 11 âm Kỵ đáp Tật Ách → coi chừng sức khỏe, mổ xẻ, tai nạn nhỏ". Ưu tiên nêu bật 3–5 tháng đáng chú ý nhất (cát đậm và hung đậm) để đương số biết tháng nào nên đẩy việc tiền bạc, tháng nào siết chi tiêu, tháng nào giữ mồm giữ miệng tránh kiện tụng, tháng nào lo sức khỏe.
+
+8. **CUNG PHÚC ĐỨC: GỐC AN - BẤT AN & PHÚC BÁO HƯỞNG THỤ**:
+   Dùng cheat sheet "CỤM SAO PHÚC ĐỨC" làm trục chính (kết hợp tam phương tứ chính, nhị hợp lục hại vây quanh đã tính sẵn) để mổ xẻ chất lượng đời sống tinh thần, mức độ an hay bất an tự thân, phúc báo thừa hưởng và năng lực hưởng thụ thành quả của đương số. Theo tinh thần Trung Châu Phái: Phúc Đức tốt thì dù vất vả vẫn thấy đáng, lòng thanh thản; Phúc Đức gặp sát kỵ thì dễ tự dằn vặt, suy nghĩ tiêu cực, hưởng phúc không trọn dù tiền tài có dư. Chỉ rõ đương số cần tu dưỡng nội tâm điểm nào để gốc phúc dày thêm thay vì tự bào mòn an lạc.
 
 Văn phong trình bày bằng Markdown gọn gàng, súc mộc nhưng đanh thép học thuật tột bậc. Mở đầu bằng một câu nói trực diện đầy uy lực xoáy sâu thẳng thắn nhân tính, từ ngữ thấu tỏ hiện đại và tâm can thực thụ của một danh sư hữu tâm!`;
 
