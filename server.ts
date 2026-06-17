@@ -4,7 +4,7 @@ import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 import { TU_HOA_BY_STEM, HOA_LABELS, STEM_NAME_BY_YEAR_MOD } from "./src/utils/tuHoa";
-import { getDamTinhForStars, getDamTinhForAuxStars, getDamTinhTuHoaDetail } from "./src/knowledge/damTinh";
+import { getDamTinhForStars, getDamTinhForAuxStars, getDamTinhTuHoa, getDamTinhTuHoaDetail } from "./src/knowledge/damTinh";
 
 dotenv.config();
 
@@ -151,17 +151,21 @@ Bạn phải bám sát 100% dữ liệu thực tế đóng trong 12 cung của l
           .trim()
           .toLowerCase();
 
+      // Gộp cả 3 nhóm sao (chính tinh + phụ tinh + trợ/sát tinh) của một cung thành
+      // một mảng. Dùng chung cho mọi phép quét sao để tránh lặp và bỏ sót nhóm.
+      const allStarsOf = (p: any): any[] => [
+        ...(p?.majorStars || []),
+        ...(p?.minorStars || []),
+        ...(p?.adjectiveStars || []),
+      ];
+
       // Tìm cung (index địa chi) chứa một sao gốc bất kỳ trên lá số.
       // Quét đủ cả 3 nhóm sao: chính tinh, phụ tinh và trợ/sát tinh (adjectiveStars),
       // vì sao Tứ Hóa như Văn Xương/Văn Khúc/Tả Phụ/Hữu Bật có thể nằm ở nhóm phụ tinh.
       const findStarBranch = (starName: string): number => {
         const target = normalizeStarName(starName);
         for (const pa of palacesArr) {
-          const all = [
-            ...(pa.majorStars || []),
-            ...(pa.minorStars || []),
-            ...(pa.adjectiveStars || []),
-          ];
+          const all = allStarsOf(pa);
           if (all.some((s: any) => normalizeStarName(s.name) === target)) {
             return toBranchIndex(pa.index);
           }
@@ -234,11 +238,7 @@ Bạn phải bám sát 100% dữ liệu thực tế đóng trong 12 cung của l
       const buildStressReport = (): string => {
         const zones: string[] = [];
         palacesArr.forEach((p: any) => {
-          const all = [
-            ...(p.majorStars || []),
-            ...(p.minorStars || []),
-            ...(p.adjectiveStars || []),
-          ];
+          const all = allStarsOf(p);
           const found = all
             .filter((s: any) => SAT_KY_STARS.includes(normalizeStarName(s.name)))
             .map((s: any) => s.name);
@@ -257,11 +257,7 @@ Bạn phải bám sát 100% dữ liệu thực tế đóng trong 12 cung của l
       const buildLuuNienReport = (): string => {
         const zones: string[] = [];
         palacesArr.forEach((p: any) => {
-          const all = [
-            ...(p.majorStars || []),
-            ...(p.minorStars || []),
-            ...(p.adjectiveStars || []),
-          ];
+          const all = allStarsOf(p);
           const luu = all
             .filter((s: any) => /\[SAO LƯU\]/.test(String(s.name || "")))
             .map((s: any) => String(s.name).replace(/\[SAO LƯU\]\s*/g, "").trim());
@@ -290,11 +286,7 @@ Bạn phải bám sát 100% dữ liệu thực tế đóng trong 12 cung của l
           if (!tuhoa) return;
           // Tập tên sao đang đóng trong CHÍNH cung này (đủ 3 nhóm)
           const inThisPalace = new Set(
-            [
-              ...(p.majorStars || []),
-              ...(p.minorStars || []),
-              ...(p.adjectiveStars || []),
-            ].map((s: any) => normalizeStarName(s.name))
+            allStarsOf(p).map((s: any) => normalizeStarName(s.name))
           );
           const selfHits = tuhoa
             .map((star, i) => ({ star, label: HOA_LABELS[i] }))
@@ -453,6 +445,11 @@ Bạn phải bám sát 100% dữ liệu thực tế đóng trong 12 cung của l
         ...collectTuHoaPairs(luuNienTuHoaTable),
       ];
       const damTinhTuHoaDetailStr = getDamTinhTuHoaDetail(damTinhTuHoaPairs);
+
+      // Tinh tình Tứ Hóa TỔNG QUÁT (bản chất chung của Lộc/Quyền/Khoa/Kỵ), làm nền
+      // khái niệm trước khi vào tinh tình chi tiết theo cặp. Chỉ lấy đúng các loại Hóa
+      // thực xuất hiện trên lá số (natal + đại vận + lưu niên); getDamTinhTuHoa tự khử trùng.
+      const damTinhTuHoaGeneralStr = getDamTinhTuHoa(damTinhTuHoaPairs.map((p) => p.hoa));
 
       // ===== CUNG THÂN: NEO TRỌNG TÂM RIÊNG (làm nổi bật ngoài mảng 12 cung) =====
       // SYSTEM_INSTRUCTION yêu cầu cực kỳ lưu tâm Cung Thân, nhưng trong mảng 12 cung
@@ -692,6 +689,10 @@ ${damTinhStr}
 Dưới đây là tinh tình của các phụ/tá/sát/tạp diệu thực có trên lá số (đã lọc sẵn, ưu tiên theo mức ảnh hưởng và có trần ngân sách để prompt không phình). Đây là NGUYÊN LIỆU NỀN: hãy đan cài với chính tinh đồng cung, miếu/hãm và tam phương tứ chính để ra kết luận động, KHÔNG chép khô khan từng sao:
 ${damTinhAuxStr}
 
+--- TINH TÌNH TỨ HÓA TỔNG QUÁT (TRUNG CHÂU PHÁI — BẢN CHẤT CHUNG CỦA 4 HÓA) ---
+Dưới đây là bản chất chung của các loại Hóa (Lộc/Quyền/Khoa/Kỵ) thực sự xuất hiện trên lá số này, cô đọng từ Đàm Tinh. Đây là NỀN KHÁI NIỆM (mỗi loại Hóa mang năng lượng gì) để luận Phần 2 cho vững gốc; PHẢI kết hợp với tinh tình chi tiết theo cặp (ngay bên dưới) và cung vị sao thụ hóa đang đóng để ra kết luận động, KHÔNG chép khô khan:
+${damTinhTuHoaGeneralStr}
+
 --- TINH TÌNH TỨ HÓA CHI TIẾT THEO CẶP (CHÍNH TINH THỤ HÓA × LOẠI HÓA) ---
 Dưới đây là tinh tình của ĐÚNG các cặp (chính tinh × Hóa) thực sự xuất hiện trên lá số này, gồm Tứ Hóa bẩm sinh và phi hóa Đại vận/Lưu niên (đã tính sẵn ở các phần trên). Dùng để luận SÂU sắc thái riêng của từng sao khi thụ Hóa theo từng can, KHÔNG chép khô khan: hãy ghép với cung vị nơi sao thụ hóa đang đóng (đã có ở bảng Tứ Hóa) và tam phương tứ chính để ra kết luận động về đương số:
 ${damTinhTuHoaDetailStr}
@@ -728,7 +729,21 @@ Bạn hãy soạn thảo bình giải chi tiết gồm 8 phần lớn sau đây 
 
 7. **LỊCH LƯU NGUYỆT 12 THÁNG ÂM: CÁT HUNG TỪNG THÁNG TRONG NĂM ${chartData.transitYear || 2026}**:
    Dựa TRỰC TIẾP vào cheat sheet "LƯU NGUYỆT — 12 CUNG THÁNG ÂM LỊCH" đã được hệ thống an sẵn (mỗi tháng âm đáp vào cung nào, can tháng nào, và Lưu Nguyệt Tứ Hóa Lộc/Quyền/Khoa/Kỵ của tháng đó bay vào sao/cung nào). TUYỆT ĐỐI không tự nhẩm lại cung tháng hay can tháng; nếu hệ thống báo thiếu dữ liệu thì nói rõ thiếu, không bịa.
-   Hãy luận thành một LỊCH HÀNH ĐỘNG cực kỳ ĐỜI THỰC, nêu RÕ TỪNG THÁNG cụ thể được hay mất CÁI GÌ — TUYỆT ĐỐI KHÔNG dùng ngôn ngữ chung chung kiểu "tháng tiến công / tháng phòng thủ". Phải gọi đúng sự việc theo cung và Tứ Hóa tháng đáp vào, ví dụ minh họa cách diễn đạt (KHÔNG phải kết quả thật): "Tháng 2 âm Lưu Lộc đáp Tài Bạch → có khoản tiền về, dễ nhận thưởng/chốt được hợp đồng"; "Tháng 4 âm Lưu Kỵ đáp Tài/Điền → hao tài, dễ mất tiền vì sửa nhà hoặc chi đột xuất"; "Tháng 7 âm Lưu Kỵ đáp Quan/Nô → thị phi công việc, dễ vướng tranh chấp giấy tờ"; "Tháng 9 âm Lưu Lộc/Hỷ đáp Phu Thê → tin vui tình cảm, cưới hỏi, gặp quý nhân"; "Tháng 11 âm Kỵ đáp Tật Ách → coi chừng sức khỏe, mổ xẻ, tai nạn nhỏ". Ưu tiên nêu bật 3–5 tháng đáng chú ý nhất (cát đậm và hung đậm) để đương số biết tháng nào nên đẩy việc tiền bạc, tháng nào siết chi tiêu, tháng nào giữ mồm giữ miệng tránh kiện tụng, tháng nào lo sức khỏe.
+   Hãy luận thành một LỊCH HÀNH ĐỘNG cực kỳ ĐỜI THỰC, nêu RÕ TỪNG THÁNG cụ thể được hay mất CÁI GÌ — TUYỆT ĐỐI KHÔNG dùng ngôn ngữ chung chung kiểu "tháng tiến công / tháng phòng thủ".
+   NGUYÊN TẮC SUY SỰ VIỆC (bắt buộc): KHÔNG dùng câu mẫu cố định cho mọi người. Với MỔI tháng, hãy nhìn CHÍNH CÙNG và sao mà Lưu Nguyệt Tứ Hóa của tháng đó đáp vào để suy ra ĐÚNG lĩnh vực đời sống bị động:
+     - Tài Bạch → tiền bạc (lương thưởng, thu nhập, chi tiêu, hao hụt)
+     - Quan Lộc → công việc, học hành, thi cử, công danh
+     - Phu Thê → quan hệ đôi lứa/bạn đời (XEM TUỔI bên dưới)
+     - Tật Ách → sức khỏe, đau ốm, tai nạn nhỏ
+     - Nô Bộc → bạn bè, đồng nghiệp, cộng sự, mạng xã hội
+     - Phụ Mẫu → cha mẹ, cấp trên, thầy cô
+     - Tử Tức → con cái, đầu tư/dự án tâm huyết (XEM TUỔI)
+     - Điền Trạch → nhà cửa, chỗ ở, tài sản lớn
+     - Huynh Đệ → anh chị em, cộng tác gần gũi
+     - Thiên Di → đi lại, di chuyển, ra ngoài, môi trường mới
+   Tính chất Hóa: Lưu Lộc/Quyền/Khoa → được, thuận, có tin vui ở lĩnh vực đó; Lưu Kỵ → mất, trắc trở, hao tổn, lo lắng ở lĩnh vực đó.
+   ĐIỀU CHỈNH THEO TUỔI (bắt buộc, căn cứ Tuổi mụ = ${chartData.transitLunarAge || "chưa rõ"}): ngôn từ phải khớp vòng đời thật của đương số. Nếu còn nhỏ/vị thành niên (dưới ~18): Phu Thê luận thành rung động đầu đời, tình cảm bạn bè khác giới, KHÔNG nói vợ chồng/cưới hỏi/ly hôn; Quan Lộc luận thành học hành thi cử; Tử Tức KHÔNG nói con cái. Nếu đã trưởng thành mà chưa lập gia đình: Phu Thê luận thành chuyện yêu đương, hẹn hò, người đang tìm hiểu. Chỉ nói vợ chồng/con cái/ly hôn khi độ tuổi và bối cảnh hợp lý. Tương tự, người lớn tuổi thì Quan Lộc thiên về công việc/hưu trí thay vì thi cử.
+   VĂN PHONG: dùng ngôn ngữ đời sống hiện đại, gần gũi với ai cũng gặp (lương thưởng, ốm đau, cãi vã, mua sắm, đi lại, học hành, yêu đương); chỉ nhắc đến hợp đồng/giấy tờ/pháp lý KHI bối cảnh lá số cho thấy đương số là người kinh doanh/đầu tư/làm ăn lớn. Ưu tiên nêu bật 3–5 tháng đáng chú ý nhất (cát đậm và hung đậm) để đương số biết tháng nào thuận việc tiền bạc, tháng nào siết chi tiêu, tháng nào giữ lời tránh va chạm, tháng nào lo sức khỏe.
 
 8. **CUNG PHÚC ĐỨC: GỐC AN - BẤT AN & PHÚC BÁO HƯỞNG THỤ**:
    Dùng cheat sheet "CỤM SAO PHÚC ĐỨC" làm trục chính (kết hợp tam phương tứ chính, nhị hợp lục hại vây quanh đã tính sẵn) để mổ xẻ chất lượng đời sống tinh thần, mức độ an hay bất an tự thân, phúc báo thừa hưởng và năng lực hưởng thụ thành quả của đương số. Theo tinh thần Trung Châu Phái: Phúc Đức tốt thì dù vất vả vẫn thấy đáng, lòng thanh thản; Phúc Đức gặp sát kỵ thì dễ tự dằn vặt, suy nghĩ tiêu cực, hưởng phúc không trọn dù tiền tài có dư. Chỉ rõ đương số cần tu dưỡng nội tâm điểm nào để gốc phúc dày thêm thay vì tự bào mòn an lạc.
