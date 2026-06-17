@@ -1,6 +1,26 @@
 import React from "react";
-import { User, Calendar, MapPin, AlertCircle, ShieldAlert, BadgeInfo } from "lucide-react";
+import { User, Calendar, AlertCircle, ShieldAlert, BadgeInfo } from "lucide-react";
 import { calculateTransitInfo, EARTHLY_BRANCHES, palaceIndexToBranchIndex } from "../utils/tuvi";
+import { TU_HOA_BY_STEM, HOA_LABELS } from "../utils/tuHoa";
+
+// Quy ước index Thiên can theo (năm % 10) — đồng nhất với STEM_NAME_BY_YEAR_MOD
+// (0:Canh,1:Tân,2:Nhâm,3:Quý,4:Giáp,5:Ất,6:Bính,7:Đinh,8:Mậu,9:Kỷ) — dùng để
+// suy can năm sinh ra tên Thiên can, phục vụ tô nhãn Tứ Hóa bẩm sinh trên lá số.
+const STEM_NAME_BY_YEAR_MOD_LOCAL = ["Canh", "Tân", "Nhâm", "Quý", "Giáp", "Ất", "Bính", "Đinh", "Mậu", "Kỷ"];
+
+// Màu nhãn cho từng loại Hóa (khớp thứ tự HOA_LABELS: Lộc/Quyền/Khoa/Kỵ).
+const HOA_BADGE_STYLE: Record<string, string> = {
+  "Hóa Lộc": "bg-emerald-600 text-white",
+  "Hóa Quyền": "bg-blue-600 text-white",
+  "Hóa Khoa": "bg-violet-600 text-white",
+  "Hóa Kỵ": "bg-rose-600 text-white",
+};
+const HOA_BADGE_SHORT: Record<string, string> = {
+  "Hóa Lộc": "Lộc",
+  "Hóa Quyền": "Quyền",
+  "Hóa Khoa": "Khoa",
+  "Hóa Kỵ": "Kỵ",
+};
 
 interface HoroscopeChartProps {
   calculated: {
@@ -58,6 +78,8 @@ export const HoroscopeChart: React.FC<HoroscopeChartProps> = ({
 
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = React.useState(false);
+  // Cung dang re chuot (index dia chi) -- dung lam noi tam hop/xung chieu. 1 state nhe.
+  const [hoverIdx, setHoverIdx] = React.useState<number | null>(null);
 
   React.useEffect(() => {
     const ele = scrollContainerRef.current;
@@ -145,6 +167,31 @@ export const HoroscopeChart: React.FC<HoroscopeChartProps> = ({
     });
     return list;
   }, [chart]);
+
+  // Tu Hoa BAM SINH: map ten sao (ha chu thuong) -> nhan Hoa. Tinh 1 lan theo can nam
+  // sinh, KHONG tinh lai moi render (tranh lag). Dung de gan badge mau Loc/Quyen/Khoa/Ky.
+  const natalHoaByStar = React.useMemo(() => {
+    const map: Record<string, string> = {};
+    const stem = STEM_NAME_BY_YEAR_MOD_LOCAL[((birthYear % 10) + 10) % 10];
+    const quartet = TU_HOA_BY_STEM[stem];
+    if (quartet) {
+      quartet.forEach((starName, i) => {
+        map[String(starName).trim().toLowerCase()] = HOA_LABELS[i];
+      });
+    }
+    return map;
+  }, [birthYear]);
+
+  // Quan he tam hop + xung chieu cua cung dang hover. Tinh nhe, chi chay khi hoverIdx doi.
+  const linkedIdx = React.useMemo(() => {
+    if (hoverIdx === null) return null;
+    return {
+      trine1: (hoverIdx + 4) % 12,
+      trine2: (hoverIdx + 8) % 12,
+      opposite: (hoverIdx + 6) % 12,
+    };
+  }, [hoverIdx]);
+
     // Early return đặt SAU toàn bộ hooks để không vi phạm Rules of Hooks
   if (!chart || !chart.palaces || !transitInfo) {
     return (
@@ -257,6 +304,20 @@ export const HoroscopeChart: React.FC<HoroscopeChartProps> = ({
         </span>
       </div>
 
+      {/* Legend: chú giải màu (HTML tĩnh, không tốn hiệu năng) */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-1 -mt-3 text-[9px] font-semibold text-stone-500 dark:text-neutral-400 select-none">
+        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-emerald-600" />Hóa Lộc</span>
+        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-blue-600" />Hóa Quyền</span>
+        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-violet-600" />Hóa Khoa</span>
+        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-rose-600" />Hóa Kỵ</span>
+        <span className="text-stone-300 dark:text-neutral-700">|</span>
+        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm border-2 border-indigo-500" />Đại Hạn</span>
+        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm border-2 border-emerald-500" />Tiểu Hạn</span>
+        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm border-2 border-dashed border-amber-500" />Lưu Thái Tuế</span>
+        <span className="text-stone-300 dark:text-neutral-700">|</span>
+        <span className="flex items-center gap-1 italic">Rê chuột vào một cung → viền vàng = tam hợp, viền xanh = xung chiếu</span>
+      </div>
+
       <div
         ref={scrollContainerRef}
         className="relative p-2 bg-stone-100 dark:bg-neutral-900/50 rounded-2xl border-4 border-stone-800 dark:border-neutral-800 shadow-xl overflow-x-auto chart-scroll-container select-none"
@@ -273,15 +334,29 @@ export const HoroscopeChart: React.FC<HoroscopeChartProps> = ({
             const isMệnh = palace.name.includes("Mệnh");
             const isThân = palace.isBodyPalace;
 
+            // Làm nổi quan hệ tam phương tứ chính khi hover (CSS thuần, không tính lại).
+            const isHovered = hoverIdx === index;
+            const isTrine = !!linkedIdx && (linkedIdx.trine1 === index || linkedIdx.trine2 === index);
+            const isOpposite = !!linkedIdx && linkedIdx.opposite === index;
+            const linkClass = isHovered
+              ? "ring-2 ring-indigo-500 ring-offset-1 z-10"
+              : isTrine
+              ? "ring-2 ring-amber-400/80"
+              : isOpposite
+              ? "ring-2 ring-sky-400/80 ring-dashed"
+              : "";
+
             return (
               <div
                 key={index}
                 id={layout.id}
                 style={{ gridRow: layout.row, gridColumn: layout.col }}
-                className={`p-2 min-h-[160px] flex flex-col justify-between border ${highlightPalaceColor(
+                onMouseEnter={() => setHoverIdx(index)}
+                onMouseLeave={() => setHoverIdx((cur) => (cur === index ? null : cur))}
+                className={`relative p-2 min-h-[160px] flex flex-col justify-between border ${highlightPalaceColor(
                   palace.name,
                   index
-                )} transition-colors`}
+                )} ${linkClass} transition-[box-shadow]`}
               >
                 {/* Cell Header: Title & Decade age limit */}
                 <div className="flex justify-between items-start border-b border-stone-200 dark:border-neutral-800 pb-1">
@@ -314,16 +389,29 @@ export const HoroscopeChart: React.FC<HoroscopeChartProps> = ({
                 <div className="flex-1 my-1.5 grid grid-cols-2 gap-1 text-[11px] leading-tight max-h-[110px] overflow-y-auto">
                   {/* Left Column: Major Stars (Chính tinh) & Good auxiliary stars */}
                   <div className="space-y-1 pr-1 border-r border-stone-200/60 dark:border-neutral-800/40">
-                    {palace.majorStars.map((s: any, idx: number) => (
-                      <div key={idx} className="font-bold text-red-600 dark:text-red-400 flex flex-col">
-                        <span>{s.name}</span>
-                        {s.brightness && (
-                          <span className="text-[9px] font-semibold text-amber-600 dark:text-amber-500">
-                            ({s.brightness})
+                    {palace.majorStars.map((s: any, idx: number) => {
+                      const hoaLabel = natalHoaByStar[String(s.name || "").trim().toLowerCase()];
+                      return (
+                        <div key={idx} className="font-bold text-red-600 dark:text-red-400 flex flex-col">
+                          <span className="flex items-center gap-1 flex-wrap">
+                            {s.name}
+                            {hoaLabel && (
+                              <span
+                                className={`text-[8px] font-black px-1 rounded leading-tight ${HOA_BADGE_STYLE[hoaLabel] || "bg-stone-500 text-white"}`}
+                                title={`Tứ Hóa bẩm sinh: ${hoaLabel}`}
+                              >
+                                {HOA_BADGE_SHORT[hoaLabel] || hoaLabel}
+                              </span>
+                            )}
                           </span>
-                        )}
-                      </div>
-                    ))}
+                          {s.brightness && (
+                            <span className="text-[9px] font-semibold text-amber-600 dark:text-amber-500">
+                              ({s.brightness})
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
                     {palace.majorStars.length === 0 && (
                       <span className="text-[10px] italic text-stone-400">Vô Chính Diệu</span>
                     )}
