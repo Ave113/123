@@ -214,6 +214,12 @@ export default function App() {
       transitDecadalPalace: transitInfo.daiHanPalaceName,
       transitYearlyPalace: transitInfo.tieuHanPalaceName,
       transitLuuThaiTuePalace: transitInfo.luuNienThaiTueName,
+      // Dữ liệu phục vụ an Lưu Nguyệt (Đẩu Quân) ở server — chỉ truyền thêm,
+      // KHÔNG đổi core logic an sao. Đẩu Quân cần: index cung Lưu Thái Tuế,
+      // tháng sinh âm lịch hiệu chỉnh, và index giờ sinh (0=Tý..11=Hợi).
+      transitLuuThaiTueIndex: transitInfo.luuNienThaiTueIndex,
+      birthLunarMonth: calculated.effectiveLunarMonth,
+      birthHourIndex: calculated.tuviGlobalHourResult.timeIndex,
       // Inject Sao Luu into palaces dynamic stars lists
       palaces: chart.palaces.map((p: any) => {
         const localSaoLuu = transitInfo.saoLuuMap[palaceIndexToBranchIndex(p.index)] || [];
