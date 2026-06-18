@@ -4,18 +4,14 @@ import {
   User, 
   MapPin, 
   Calendar, 
-  Sparkles, 
-  AlertTriangle, 
   Trash2, 
   Clock, 
   Users, 
   Moon, 
-  Save, 
   FileCheck, 
-  Download,
   Info
 } from "lucide-react";
-import { BirthInput, SavedProfile, BirthplaceRegion } from "./types";
+import { BirthInput, SavedProfile, BirthplaceRegion, ChatTurn, SavedInterpretation } from "./types";
 import { generateTuviAstrolabe, calculateTransitInfo, EARTHLY_BRANCHES, palaceIndexToBranchIndex } from "./utils/tuvi";
 import { HoroscopeChart } from "./components/HoroscopeChart";
 import { AIInterpreter } from "./components/AIInterpreter";
@@ -64,6 +60,40 @@ export default function App() {
   // Saved Profiles list
   const [savedProfiles, setSavedProfiles] = React.useState<SavedProfile[]>([]);
   const [activeProfileId, setActiveProfileId] = React.useState<string | null>(null);
+
+  // Follow-up chat state (hỏi đáp tiếp nối trên lá số đã luận giải)
+  const [chatTurns, setChatTurns] = React.useState<ChatTurn[]>([]);
+  // Lưu payload lá số gốc (chartData) đã gửi khi luận giải, để chat follow-up
+  // gửi kèm cho AI tra cứu sao/cung/tứ hóa thực tế thay vì chỉ đọc lại bài văn.
+  const [lastChartPayload, setLastChartPayload] = React.useState<any | null>(null);
+  const [chatLoading, setChatLoading] = React.useState<boolean>(false);
+  const [chatError, setChatError] = React.useState<string | null>(null);
+
+  // So hợp tuổi 2 lá số
+  const [compareTargetId, setCompareTargetId] = React.useState<string | null>(null);
+  const [compatResult, setCompatResult] = React.useState<string | null>(null);
+  const [compatLoading, setCompatLoading] = React.useState<boolean>(false);
+  const [compatError, setCompatError] = React.useState<string | null>(null);
+
+  // Lưu interpretation + chat vào hồ sơ đang active (bền hóa vào localStorage).
+  const persistInterpretationToProfile = (patch: Partial<SavedInterpretation>) => {
+    if (!activeProfileId) return;
+    setSavedProfiles((prev) => {
+      const updated = prev.map((p) => {
+        if (p.id !== activeProfileId) return p;
+        const base: SavedInterpretation = p.savedInterpretation || {
+          content: "",
+          modelUsed: "",
+          transitYear,
+          createdAt: new Date().toISOString(),
+          chat: [],
+        };
+        return { ...p, savedInterpretation: { ...base, ...patch } };
+      });
+      localStorage.setItem("tuvi_profiles", JSON.stringify(updated));
+      return updated;
+    });
+  };
 
   // Load API key and stored profiles on mount
   React.useEffect(() => {
@@ -132,6 +162,18 @@ export default function App() {
       modelSelection,
       originalTimezoneOffset,
       createdAt: new Date().toLocaleDateString("vi-VN"),
+      // Đính kèm bản luận giải + chat đang hiển thị (nếu có) để không mất khi đổi hồ sơ.
+      ...(interpretation
+        ? {
+            savedInterpretation: {
+              content: interpretation,
+              modelUsed: modelUsedResult,
+              transitYear,
+              createdAt: new Date().toISOString(),
+              chat: chatTurns,
+            },
+          }
+        : {}),
     };
 
     const updated = [
@@ -145,6 +187,7 @@ export default function App() {
     setActiveProfileId(newProfile.id);
   };
 
+
   const handleSelectProfile = (p: SavedProfile) => {
     setProfileName(p.name);
     setSolarDate(p.solarDate);
@@ -154,6 +197,24 @@ export default function App() {
     setOriginalTimezoneOffset(p.originalTimezoneOffset ?? 7);
     setActiveProfileId(p.id);
     triggerCalculation(p.name, p.solarDate, p.solarTime, p.birthplace, p.gender, p.originalTimezoneOffset ?? 7);
+
+    // Nạp lại luận giải đã lưu (nếu có) thay vì bắt gọi AI lại; reset chat/compat theo hồ sơ mới.
+    const saved = p.savedInterpretation;
+    if (saved && saved.content) {
+      setInterpretation(saved.content);
+      setModelUsedResult(saved.modelUsed || "");
+      setChatTurns(Array.isArray(saved.chat) ? saved.chat : []);
+      if (typeof saved.transitYear === "number") setTransitYear(saved.transitYear);
+    } else {
+      setInterpretation(null);
+      setChatTurns([]);
+    }
+    setChatError(null);
+    setCompatResult(null);
+    setCompatError(null);
+    setCompareTargetId(null);
+    // Reset chartData của lá số trước để chat không tra nhầm; sẽ được set lại khi bấm luận giải.
+    setLastChartPayload(null);
   };
 
   const handleDeleteProfile = (id: string, e: React.MouseEvent) => {
@@ -267,11 +328,119 @@ export default function App() {
       setInterpretation(data.interpretation);
       setModelUsedResult(data.modelUsed || "gemini-3.5-flash");
       setFallbackUsedResult(!!data.fallbackUsed);
+      setLastChartPayload(formattedPayload);
+
+      // Lưu bản luận giải vào hồ sơ đang active để lần sau mở lại không tốn lượt gọi AI.
+      setChatTurns([]);
+      persistInterpretationToProfile({
+        content: data.interpretation,
+        modelUsed: data.modelUsed || "gemini-3.5-flash",
+        transitYear,
+        createdAt: new Date().toISOString(),
+        chat: [],
+      });
     } catch (err: any) {
       console.error(err);
       setAiError(err.message || "Không thể kết nối với máy chủ AI luận giải.");
     } finally {
       setAiLoading(false);
+    }
+  };
+
+  // ===== HỎI ĐÁP FOLLOW-UP trên lá số đã luận giải =====
+  const handleAskFollowUp = async (question: string) => {
+    const q = question.trim();
+    if (!q || !interpretation) return;
+
+    setChatLoading(true);
+    setChatError(null);
+    const history = [...chatTurns];
+    const nextTurns: ChatTurn[] = [...chatTurns, { role: "user", content: q }];
+    setChatTurns(nextTurns);
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          baseInterpretation: interpretation,
+          chartData: lastChartPayload,
+          history,
+          question: q,
+          customApiKey: apiKey.trim(),
+          modelSelection,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        if (data.rateLimited && data.retryAfter) setRetryCountdown(data.retryAfter);
+        throw new Error(data.error || "Lỗi bất định từ dịch vụ AI.");
+      }
+      const finalTurns: ChatTurn[] = [...nextTurns, { role: "assistant", content: data.answer }];
+      setChatTurns(finalTurns);
+      persistInterpretationToProfile({ chat: finalTurns });
+    } catch (err: any) {
+      console.error(err);
+      setChatError(err.message || "Không thể kết nối máy chủ hỏi đáp.");
+      // Hoàn tác lượt hỏi vừa thêm để người dùng gửi lại sạch sẽ.
+      setChatTurns(history);
+    } finally {
+      setChatLoading(false);
+    }
+  };
+
+  // ===== SO HỢP TUỔI 2 LÁ SỐ =====
+  // Rút gọn lá số thành payload nhẹ cho /api/compat (chỉ cần Mệnh, Phu Thê, can chi).
+  const buildCompatChart = (p: SavedProfile) => {
+    const r = generateTuviAstrolabe(p.solarDate, p.solarTime, p.birthplace, p.gender, p.originalTimezoneOffset ?? 7);
+    const chart = r.chart;
+    return {
+      name: p.name,
+      gender: chart.gender,
+      zodiac: chart.zodiac,
+      fiveElementsClass: chart.fiveElementsClass,
+      chineseDate: chart.chineseDate,
+      palaces: (chart.palaces || []).map((pa: any) => ({
+        name: pa.name,
+        majorStars: (pa.majorStars || []).map((s: any) => ({ name: s.name })),
+      })),
+    };
+  };
+
+  const handleCompareProfiles = async () => {
+    if (!activeProfileId || !compareTargetId || activeProfileId === compareTargetId) {
+      setCompatError("Hãy chọn một hồ sơ KHÁC để so hợp tuổi.");
+      return;
+    }
+    const profA = savedProfiles.find((p) => p.id === activeProfileId);
+    const profB = savedProfiles.find((p) => p.id === compareTargetId);
+    if (!profA || !profB) {
+      setCompatError("Không tìm thấy hồ sơ để so sánh. Vui lòng lưu hồ sơ trước.");
+      return;
+    }
+
+    setCompatLoading(true);
+    setCompatError(null);
+    setCompatResult(null);
+    try {
+      const chartA = buildCompatChart(profA);
+      const chartB = buildCompatChart(profB);
+      const response = await fetch("/api/compat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chartA, chartB, customApiKey: apiKey.trim(), modelSelection }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        if (data.rateLimited && data.retryAfter) setRetryCountdown(data.retryAfter);
+        throw new Error(data.error || "Lỗi bất định từ dịch vụ AI.");
+      }
+      setCompatResult(data.result);
+    } catch (err: any) {
+      console.error(err);
+      setCompatError(err.message || "Không thể kết nối máy chủ so hợp tuổi.");
+    } finally {
+      setCompatLoading(false);
     }
   };
 
@@ -539,6 +708,18 @@ export default function App() {
                 retryCountdown={retryCountdown}
                 modelUsedResult={modelUsedResult}
                 fallbackUsedResult={fallbackUsedResult}
+                chatTurns={chatTurns}
+                chatLoading={chatLoading}
+                chatError={chatError}
+                onAskFollowUp={handleAskFollowUp}
+                savedProfiles={savedProfiles}
+                activeProfileId={activeProfileId}
+                compareTargetId={compareTargetId}
+                setCompareTargetId={setCompareTargetId}
+                onCompareProfiles={handleCompareProfiles}
+                compatResult={compatResult}
+                compatLoading={compatLoading}
+                compatError={compatError}
               />
             </>
           ) : (
