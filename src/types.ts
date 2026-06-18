@@ -30,6 +30,9 @@ export interface SavedInterpretation {
   transitYear: number;
   createdAt: string;
   chat: ChatTurn[];
+  // Payload lá số (12 cung + sao + transit) đã gửi khi luận giải, bền hóa để phần
+  // hỏi đáp tra cứu sao/cung đúng khi mở lại hồ sơ (không phải luận giải lại).
+  chartData?: any;
 }
 
 export interface SavedProfile extends Omit<BirthInput, "customApiKey"> {
