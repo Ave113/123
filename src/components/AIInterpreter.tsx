@@ -1,6 +1,7 @@
 import React from "react";
 import ReactMarkdown from "react-markdown";
-import { Sparkles, Brain, Key, AlertTriangle, Eye, EyeOff, FileText, CheckCircle, RefreshCw, BookOpen, Type, Palette, Volume2, VolumeX, ArrowLeft, X, Plus, Minus, Copy, Download } from "lucide-react";
+import { Sparkles, Brain, Key, AlertTriangle, Eye, EyeOff, FileText, CheckCircle, RefreshCw, BookOpen, Volume2, VolumeX, ArrowLeft, X, Copy, Download, Send, MessageCircle, Heart, Users } from "lucide-react";
+import type { ChatTurn, SavedProfile } from "../types";
 
 interface AIInterpreterProps {
   interpretation: string | null;
@@ -14,6 +15,20 @@ interface AIInterpreterProps {
   retryCountdown?: number;
   modelUsedResult?: string;
   fallbackUsedResult?: boolean;
+  // Hỏi đáp follow-up
+  chatTurns?: ChatTurn[];
+  chatLoading?: boolean;
+  chatError?: string | null;
+  onAskFollowUp?: (question: string) => void;
+  // So hợp tuổi
+  savedProfiles?: SavedProfile[];
+  activeProfileId?: string | null;
+  compareTargetId?: string | null;
+  setCompareTargetId?: (id: string | null) => void;
+  onCompareProfiles?: () => void;
+  compatResult?: string | null;
+  compatLoading?: boolean;
+  compatError?: string | null;
 }
 
 export const AIInterpreter: React.FC<AIInterpreterProps> = ({
@@ -28,7 +43,28 @@ export const AIInterpreter: React.FC<AIInterpreterProps> = ({
   retryCountdown = 0,
   modelUsedResult = "",
   fallbackUsedResult = false,
+  chatTurns = [],
+  chatLoading = false,
+  chatError = null,
+  onAskFollowUp,
+  savedProfiles = [],
+  activeProfileId = null,
+  compareTargetId = null,
+  setCompareTargetId,
+  onCompareProfiles,
+  compatResult = null,
+  compatLoading = false,
+  compatError = null,
 }) => {
+  const [followUpInput, setFollowUpInput] = React.useState<string>("");
+
+  const submitFollowUp = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = followUpInput.trim();
+    if (!q || chatLoading || !onAskFollowUp) return;
+    onAskFollowUp(q);
+    setFollowUpInput("");
+  };
   const [showKey, setShowKey] = React.useState<boolean>(false);
   const [saveStatus, setSaveStatus] = React.useState<boolean>(false);
 
@@ -801,6 +837,126 @@ export const AIInterpreter: React.FC<AIInterpreterProps> = ({
               <div className="markdown-body prose prose-stone dark:prose-invert max-w-none text-xs sm:text-sm space-y-6">
                 <ReactMarkdown>{interpretation}</ReactMarkdown>
               </div>
+            </div>
+
+            {/* ===== HỎI ĐÁP FOLLOW-UP ===== */}
+            <div className="border border-indigo-200 dark:border-indigo-950/50 rounded-xl p-5 bg-indigo-50/30 dark:bg-indigo-950/10 space-y-4">
+              <h4 className="font-bold text-stone-900 dark:text-white flex items-center gap-1.5 text-sm">
+                <MessageCircle className="w-4 h-4 text-indigo-600" />
+                Hỏi Đáp Thêm Về Lá Số Này
+              </h4>
+              <p className="text-[11px] text-stone-500 dark:text-neutral-400 -mt-2">
+                Đặt câu hỏi cụ thể (vd: “năm sau tôi có nên đổi việc?”, “tháng nào hợp cưới?”). AI trả lời bám đúng bản luận giải ở trên.
+              </p>
+
+              {chatTurns.length > 0 && (
+                <div className="space-y-3 max-h-[420px] overflow-y-auto pr-1">
+                  {chatTurns.map((turn, idx) => (
+                    <div key={idx} className={`flex ${turn.role === "user" ? "justify-end" : "justify-start"}`}>
+                      <div className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-xs sm:text-sm leading-relaxed ${
+                        turn.role === "user"
+                          ? "bg-indigo-600 text-white rounded-br-sm"
+                          : "bg-white dark:bg-neutral-900 border border-stone-200 dark:border-neutral-800 text-stone-800 dark:text-neutral-200 rounded-bl-sm"
+                      }`}>
+                        {turn.role === "assistant" ? (
+                          <div className="markdown-body prose prose-sm prose-stone dark:prose-invert max-w-none">
+                            <ReactMarkdown>{turn.content}</ReactMarkdown>
+                          </div>
+                        ) : (
+                          <span>{turn.content}</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  {chatLoading && (
+                    <div className="flex justify-start">
+                      <div className="bg-white dark:bg-neutral-900 border border-stone-200 dark:border-neutral-800 rounded-2xl rounded-bl-sm px-3.5 py-2.5 text-xs text-stone-500 flex items-center gap-2">
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                        Minh Sư đang ngẫm nghĩ...
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {chatError && (
+                <div className="p-2.5 rounded-lg bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/50 text-rose-800 dark:text-rose-300 text-xs flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <span>{chatError}</span>
+                </div>
+              )}
+
+              <form onSubmit={submitFollowUp} className="flex gap-2 items-center">
+                <input
+                  type="text"
+                  value={followUpInput}
+                  onChange={(e) => setFollowUpInput(e.target.value)}
+                  placeholder="Nhập câu hỏi về lá số..."
+                  disabled={chatLoading || retryCountdown > 0}
+                  className="flex-1 text-sm bg-white dark:bg-neutral-950 border border-stone-250 dark:border-neutral-800 focus:border-indigo-500 focus:outline-none rounded-xl px-3.5 py-2.5 text-stone-900 dark:text-white disabled:opacity-60"
+                />
+                <button
+                  type="submit"
+                  disabled={!followUpInput.trim() || chatLoading || retryCountdown > 0}
+                  className="bg-indigo-600 hover:bg-indigo-500 disabled:bg-stone-300 disabled:cursor-not-allowed text-white font-bold px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition-all active:scale-98 shrink-0"
+                >
+                  <Send className="w-4 h-4" />
+                  Gửi
+                </button>
+              </form>
+            </div>
+
+            {/* ===== SO HỢP TUỔI 2 LÁ SỐ ===== */}
+            <div className="border border-rose-200 dark:border-rose-950/50 rounded-xl p-5 bg-rose-50/30 dark:bg-rose-950/10 space-y-4">
+              <h4 className="font-bold text-stone-900 dark:text-white flex items-center gap-1.5 text-sm">
+                <Heart className="w-4 h-4 text-rose-600" />
+                So Hợp Tuổi Với Một Hồ Sơ Khác
+              </h4>
+              <p className="text-[11px] text-stone-500 dark:text-neutral-400 -mt-2">
+                Luận sự tương hợp (hôn nhân / hợp tác) giữa hồ sơ đang xem và một hồ sơ đã lưu. Cần lưu ít nhất 2 hồ sơ.
+              </p>
+
+              {savedProfiles.filter((p) => p.id !== activeProfileId).length === 0 ? (
+                <p className="text-xs italic text-stone-400 flex items-center gap-1.5">
+                  <Users className="w-4 h-4" />
+                  Chưa có hồ sơ khác để so. Hãy lưu thêm ít nhất một hồ sơ nữa.
+                </p>
+              ) : (
+                <div className="flex flex-wrap gap-2 items-center">
+                  <select
+                    value={compareTargetId || ""}
+                    onChange={(e) => setCompareTargetId && setCompareTargetId(e.target.value || null)}
+                    className="text-xs font-semibold bg-white dark:bg-neutral-950 border border-stone-250 dark:border-neutral-800 rounded-lg px-2.5 py-2 text-stone-800 dark:text-white focus:outline-none focus:border-rose-400 max-w-[220px]"
+                  >
+                    <option value="">— Chọn hồ sơ để so —</option>
+                    {savedProfiles.filter((p) => p.id !== activeProfileId).map((p) => (
+                      <option key={p.id} value={p.id}>{p.name} ({p.gender})</option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={onCompareProfiles}
+                    disabled={!compareTargetId || compatLoading || retryCountdown > 0}
+                    className="bg-rose-600 hover:bg-rose-500 disabled:bg-stone-300 disabled:cursor-not-allowed text-white font-bold text-xs px-4 py-2 rounded-lg flex items-center gap-1.5 transition-all active:scale-98"
+                  >
+                    {compatLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Heart className="w-3.5 h-3.5" />}
+                    {compatLoading ? "Đang luận..." : "Luận hợp tuổi"}
+                  </button>
+                </div>
+              )}
+
+              {compatError && (
+                <div className="p-2.5 rounded-lg bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/50 text-rose-800 dark:text-rose-300 text-xs flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <span>{compatError}</span>
+                </div>
+              )}
+
+              {compatResult && (
+                <div className="markdown-body prose prose-sm prose-stone dark:prose-invert max-w-none border-t border-rose-200/60 dark:border-rose-950/40 pt-3">
+                  <ReactMarkdown>{compatResult}</ReactMarkdown>
+                </div>
+              )}
             </div>
           </div>
         ) : (
