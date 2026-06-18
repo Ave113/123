@@ -16,7 +16,25 @@ export interface BirthInput {
   originalTimezoneOffset?: number; // for overseas births
 }
 
+// Một lượt hỏi đáp follow-up trên lá số đã luận giải.
+export interface ChatTurn {
+  role: "user" | "assistant";
+  content: string;
+}
+
+// Bản luận giải đã lưu kèm hồ sơ (bền hóa vào localStorage cùng SavedProfile),
+// để mở lại hồ sơ không phải gọi AI lại.
+export interface SavedInterpretation {
+  content: string;
+  modelUsed: string;
+  transitYear: number;
+  createdAt: string;
+  chat: ChatTurn[];
+}
+
 export interface SavedProfile extends Omit<BirthInput, "customApiKey"> {
   id: string;
   createdAt: string;
+  // Đính kèm bản luận giải + lịch sử hỏi đáp gần nhất (nếu có).
+  savedInterpretation?: SavedInterpretation;
 }
