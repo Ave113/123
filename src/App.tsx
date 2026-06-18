@@ -205,16 +205,18 @@ export default function App() {
       setModelUsedResult(saved.modelUsed || "");
       setChatTurns(Array.isArray(saved.chat) ? saved.chat : []);
       if (typeof saved.transitYear === "number") setTransitYear(saved.transitYear);
+      // Nạp lại payload lá số đã bền hóa để chat follow-up tra cứu sao/cung đúng ngay,
+      // không bắt người dùng bấm luận giải lại. Nếu hồ sơ cũ chưa lưu chartData thì để null.
+      setLastChartPayload(saved.chartData ?? null);
     } else {
       setInterpretation(null);
       setChatTurns([]);
+      setLastChartPayload(null);
     }
     setChatError(null);
     setCompatResult(null);
     setCompatError(null);
     setCompareTargetId(null);
-    // Reset chartData của lá số trước để chat không tra nhầm; sẽ được set lại khi bấm luận giải.
-    setLastChartPayload(null);
   };
 
   const handleDeleteProfile = (id: string, e: React.MouseEvent) => {
@@ -338,6 +340,8 @@ export default function App() {
         transitYear,
         createdAt: new Date().toISOString(),
         chat: [],
+        // Lưu kèm payload lá số để chat follow-up sau khi mở lại hồ sơ vẫn tra cứu được sao/cung.
+        chartData: formattedPayload,
       });
     } catch (err: any) {
       console.error(err);
