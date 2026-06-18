@@ -390,7 +390,9 @@ export default function App() {
   };
 
   // ===== SO HỢP TUỔI 2 LÁ SỐ =====
-  // Rút gọn lá số thành payload nhẹ cho /api/compat (chỉ cần Mệnh, Phu Thê, can chi).
+  // Rút gọn lá số thành payload cho /api/compat. summarize() phía server đọc thêm
+  // Phúc Đức/Tài Bạch/Quan Lộc/Thiên Di + phụ/sát tinh + địa chi, nên gửi đủ các
+  // trường này (vẫn nhẹ vì chỉ kèm tên sao + địa chi, không kèm cheat sheet).
   const buildCompatChart = (p: SavedProfile) => {
     const r = generateTuviAstrolabe(p.solarDate, p.solarTime, p.birthplace, p.gender, p.originalTimezoneOffset ?? 7);
     const chart = r.chart;
@@ -402,7 +404,10 @@ export default function App() {
       chineseDate: chart.chineseDate,
       palaces: (chart.palaces || []).map((pa: any) => ({
         name: pa.name,
+        earthlyBranch: pa.earthlyBranch,
         majorStars: (pa.majorStars || []).map((s: any) => ({ name: s.name })),
+        minorStars: (pa.minorStars || []).map((s: any) => ({ name: s.name })),
+        adjectiveStars: (pa.adjectiveStars || []).map((s: any) => ({ name: s.name })),
       })),
     };
   };
