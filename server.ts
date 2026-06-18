@@ -958,6 +958,143 @@ Văn phong trình bày bằng Markdown gọn gàng, súc mộc nhưng đanh thé
     }
   });
 
+  // ===== HELPER dùng chung cho route AI phụ: BYOK + chọn model + fallback 503 =====
+  const resolveKeyAndModel = (customApiKey: any, modelSelection: any) => {
+    const finalApiKey = customApiKey ? String(customApiKey).trim() : "";
+    let modelName = "gemini-3.5-flash";
+    if (modelSelection === "gemini-3.1-flash-lite") modelName = "gemini-3.1-flash-lite";
+    return { finalApiKey, modelName };
+  };
+
+  const isBusyError = (rawMsg: string): boolean =>
+    rawMsg.includes("503") ||
+    rawMsg.toLowerCase().includes("unavailable") ||
+    rawMsg.toLowerCase().includes("high demand") ||
+    rawMsg.toLowerCase().includes("busy") ||
+    rawMsg.toLowerCase().includes("spikes in demand");
+
+  const generateWithFallback = async (
+    ai: any, modelName: string, contents: string, systemInstruction: string
+  ): Promise<{ response: any; finalModelName: string; fallbackUsed: boolean }> => {
+    let finalModelName = modelName;
+    let fallbackUsed = false;
+    try {
+      const response = await ai.models.generateContent({ model: finalModelName, contents, config: { systemInstruction } });
+      return { response, finalModelName, fallbackUsed };
+    } catch (firstError: any) {
+      const rawMsg = firstError?.message || (typeof firstError === "string" ? firstError : JSON.stringify(firstError)) || "";
+      if (isBusyError(rawMsg) && finalModelName !== "gemini-3.1-flash-lite") {
+        finalModelName = "gemini-3.1-flash-lite";
+        fallbackUsed = true;
+        const response = await ai.models.generateContent({ model: finalModelName, contents, config: { systemInstruction } });
+        return { response, finalModelName, fallbackUsed };
+      }
+      throw firstError;
+    }
+  };
+
+  const sendAiError = (res: any, error: any) => {
+    const rawMsg = error?.message || (typeof error === "string" ? error : JSON.stringify(error)) || "Lỗi xử lý trên máy chủ.";
+    let errMsg = rawMsg;
+    let isRateLimit = false;
+    let retryAfter = 30;
+    if (isBusyError(rawMsg)) {
+      isRateLimit = true;
+      retryAfter = 15;
+      errMsg = "Hệ thống Google Gemini API đang quá tải tạm thời (503). Vui lòng đợi ~15 giây rồi gửi lại, hoặc chuyển sang Gemini 3.1 Flash Lite, hoặc dùng API Key cá nhân (BYOK).";
+    } else if (rawMsg.includes("RESOURCE_EXHAUSTED") || rawMsg.includes("quota") || rawMsg.includes("429") || rawMsg.toLowerCase().includes("limit")) {
+      isRateLimit = true;
+      const secondsMatch = rawMsg.match(/retry in\s+([0-9.]+)\s*s/i);
+      const delayMatch = rawMsg.match(/retryDelay:\s*"(\d+)/i);
+      if (secondsMatch) retryAfter = Math.ceil(parseFloat(secondsMatch[1]));
+      else if (delayMatch) retryAfter = parseInt(delayMatch[1], 10);
+      errMsg = `Đã vượt hạn mức lượt dùng (Quota / Rate Limit) tạm thời. Hãy đợi ~${retryAfter} giây rồi thử lại, hoặc dùng API Key cá nhân (BYOK).`;
+    }
+    res.status(500).json({ error: errMsg, rateLimited: isRateLimit, retryAfter, rawMessage: rawMsg });
+  };
+
+  // ===== API: HỎI ĐÁP FOLLOW-UP trên lá số đã luận giải =====
+  app.post("/api/chat", async (req, res) => {
+    try {
+      const { baseInterpretation, chartData, history, question, customApiKey, modelSelection } = req.body;
+      if (!question || !String(question).trim()) return res.status(400).json({ error: "Thiếu câu hỏi." });
+      const { finalApiKey, modelName } = resolveKeyAndModel(customApiKey, modelSelection);
+      if (!finalApiKey) return res.status(400).json({ error: "Yêu cầu khóa API cá nhân: vui lòng nhập và lưu Google Gemini API Key trước khi hỏi đáp." });
+      const ai = new GoogleGenAI({ apiKey: finalApiKey, httpOptions: { headers: { "User-Agent": "aistudio-build" } } });
+
+      const CHAT_SYSTEM_INSTRUCTION = `Bạn là một Minh Sư Tử Vi đang tiếp tục tư vấn cho đương số DỰA TRÊN ĐÚNG dữ liệu lá số và bản luận giải đã cung cấp bên dưới. Nguyên tắc:\n- CHỈ dựa vào DỮ LIỆU LÁ SỐ (12 cung, sao thực có, vận hạn) và bản luận giải gốc; TUYỆT ĐỐI không bịa sao không có trong dữ liệu.\n- Khi trả lời, hãy TRA ĐÚNG cung/sao liên quan câu hỏi: hỏi tình duyên soi cung Phu Thê, hỏi tiền soi Tài Bạch/Quan Lộc, hỏi sức khỏe soi Tật Ách... dựa vào sao thực đóng ở cung đó.\n- Nếu bản văn luận giải không nêu chi tiết, ưu tiên tra trực tiếp DỮ LIỆU LÁ SỐ; nếu cả hai đều không đủ, nói rõ thiếu dữ kiện thay vì bịa.\n- Trả lời ĐÚNG TRỌNG TÂM, ngắn gọn, đời thực, không lặp lại toàn bộ bài cũ.\n- Giữ giọng "Nói Thật & Trực Diện": có cát nói cát, có hung nói hung, hướng đương số tự điều chỉnh hành vi.\n- Nếu câu hỏi không liên quan Tử Vi/lá số, lịch sự từ chối và kéo về chủ đề mệnh lý.`;
+
+      // Dựng phần dữ liệu lá số gọn (phương án B): 12 cung + sao thực + vận hạn.
+      // Chỉ liệt kê sao thực có để AI tra cứu, KHÔNG kèm cheat sheet nặng.
+      const buildChartContext = (cd: any): string => {
+        if (!cd || !Array.isArray(cd.palaces)) return "(Không có dữ liệu lá số kèm theo — chỉ dựa vào bản văn luận giải.)";
+        const head = [
+          `- Giới tính: ${cd.gender || "?"} | Cầm tinh: ${cd.zodiac || "?"} | Cục: ${cd.fiveElementsClass || "?"}`,
+          `- Can chi: ${cd.chineseDate || "?"} | Thiên can năm sinh: ${cd.birthHeavenlyStem || "?"}`,
+          `- Năm xem hạn: ${cd.transitYear || "?"} (tuổi mụ ${cd.transitLunarAge || "?"}) | Đại hạn: ${cd.transitDecadalPalace || "?"} | Tiểu hạn: ${cd.transitYearlyPalace || "?"} | Lưu Thái Tuế: ${cd.transitLuuThaiTuePalace || "?"}`,
+        ].join("\n");
+        const palaceLines = cd.palaces.map((p: any) => {
+          const major = (p.majorStars || []).map((s: any) => s.name).join(", ") || "Vô Chính Diệu";
+          const minor = (p.minorStars || []).map((s: any) => s.name).join(", ") || "";
+          const adj = (p.adjectiveStars || []).map((s: any) => s.name).join(", ") || "";
+          const extras = [minor && `Trợ/Lưu: ${minor}`, adj && `Sát/Tạp: ${adj}`].filter(Boolean).join(" | ");
+          return `  - ${p.name} (${p.earthlyBranch || "?"}, can ${p.heavenlyStem || "?"})${p.isBodyPalace ? " [THÂN]" : ""}: ${major}${extras ? " | " + extras : ""}`;
+        }).join("\n");
+        return `${head}\n12 CUNG:\n${palaceLines}`;
+      };
+      const chartContext = buildChartContext(chartData);
+
+      const historyArr = Array.isArray(history) ? history : [];
+      const historyStr = historyArr.map((t: any) => `${t.role === "user" ? "Đương số" : "Minh Sư"}: ${String(t.content || "").trim()}`).join("\n\n");
+
+      const prompt = `--- DỮ LIỆU LÁ SỐ (sao THỰC CÓ — tra cứu trực tiếp ở đây) ---\n${chartContext}\n\n--- BẢN LUẬN GIẢI LÁ SỐ GỐC (diễn giải đã có) ---\n${String(baseInterpretation || "(chưa có bản luận giải gốc — hãy luận dựa trên dữ liệu lá số ở trên)").trim()}\n\n${historyStr ? `--- CÁC LƯỢT HỎI ĐÁP TRƯỚC ĐÓ ---\n${historyStr}\n\n` : ""}--- CÂU HỎI MỚI CỦA ĐƯƠNG SỐ ---\n${String(question).trim()}\n\nHãy tra đúng cung/sao liên quan rồi trả lời trực diện, bám đúng lá số.`;
+
+      const { response, finalModelName, fallbackUsed } = await generateWithFallback(ai, modelName, prompt, CHAT_SYSTEM_INSTRUCTION);
+      const answer = (response.text || "").trim();
+      if (answer.length < 2) return res.status(502).json({ error: "Mô hình AI trả về phản hồi rỗng. Vui lòng thử lại.", rateLimited: true, retryAfter: 10 });
+      res.json({ answer, modelUsed: finalModelName, fallbackUsed });
+    } catch (error: any) {
+      console.error("Lỗi hỏi đáp follow-up:", error);
+      sendAiError(res, error);
+    }
+  });
+
+  // ===== API: SO HỢP TUỔI GIỮA 2 LÁ SỐ =====
+  app.post("/api/compat", async (req, res) => {
+    try {
+      const { chartA, chartB, customApiKey, modelSelection } = req.body;
+      if (!chartA || !chartB) return res.status(400).json({ error: "Cần đủ dữ liệu hai lá số để so hợp tuổi." });
+      const { finalApiKey, modelName } = resolveKeyAndModel(customApiKey, modelSelection);
+      if (!finalApiKey) return res.status(400).json({ error: "Yêu cầu khóa API cá nhân: vui lòng nhập và lưu Google Gemini API Key trước khi so hợp tuổi." });
+      const ai = new GoogleGenAI({ apiKey: finalApiKey, httpOptions: { headers: { "User-Agent": "aistudio-build" } } });
+
+      const COMPAT_SYSTEM_INSTRUCTION = `Bạn là Minh Sư Tử Vi luận SỰ TƯƠNG HỢP giữa hai đương số (hợp hôn nhân hoặc hợp tác làm ăn) dựa trên dữ liệu hai lá số được cung cấp. Nguyên tắc:\n- CHỈ dùng sao/cung THỰC CÓ trên hai lá số; không bịa.\n- Luận theo: tương quan Mệnh A × Mệnh B, can chi năm sinh (tam hợp/lục hợp/lục xung/lục hại), cung Phu Thê của mỗi người, bổ khuyết hay xung khắc ngũ hành.\n- "Nói Thật & Trực Diện": chỉ rõ điểm hợp (nương nhau, bổ trợ) và điểm khắc (dễ va chạm, ai nên nhường ai), kèm cách hoá giải thực hành.\n- Kết bằng một đánh giá tổng mức độ tương hợp (vd: rất hợp / hợp có điều kiện / cần nỗ lực dung hòa), tránh phán cứng nhắc "không hợp" bỏ nhau.\nBắt đầu thẳng vào luận giải, không chào hỏi lê thê. Trình bày Markdown gọn.`;
+
+      const summarize = (c: any, label: string): string => {
+        const palaces = Array.isArray(c?.palaces) ? c.palaces : [];
+        const menh = palaces.find((p: any) => String(p?.name || "").includes("Mệnh"));
+        const phu = palaces.find((p: any) => String(p?.name || "").includes("Phu Thê"));
+        const starsOf = (p: any) => (p?.majorStars || []).map((s: any) => s.name).join(", ") || "Vô Chính Diệu";
+        return [
+          `# LÁ SỐ ${label}: ${c?.name || "(không tên)"}`,
+          `- Giới tính: ${c?.gender || "?"} | Cầm tinh: ${c?.zodiac || "?"} | Cục: ${c?.fiveElementsClass || "?"}`,
+          `- Can chi năm sinh: ${c?.chineseDate || "?"}`,
+          `- Mệnh: ${menh ? starsOf(menh) : "?"}`,
+          `- Phu Thê: ${phu ? starsOf(phu) : "?"}`,
+        ].join("\n");
+      };
+
+      const prompt = `${summarize(chartA, "A")}\n\n${summarize(chartB, "B")}\n\nHãy luận sự tương hợp giữa hai lá số trên.`;
+      const { response, finalModelName, fallbackUsed } = await generateWithFallback(ai, modelName, prompt, COMPAT_SYSTEM_INSTRUCTION);
+      const result = (response.text || "").trim();
+      if (result.length < 50) return res.status(502).json({ error: "Mô hình AI trả về phản hồi quá ngắn. Vui lòng thử lại.", rateLimited: true, retryAfter: 10 });
+      res.json({ result, modelUsed: finalModelName, fallbackUsed });
+    } catch (error: any) {
+      console.error("Lỗi so hợp tuổi:", error);
+      sendAiError(res, error);
+    }
+  });
+
   // Serve static assets in production, and run Vite devserver in dev mode
   if (process.env.NODE_ENV !== "production") {
     console.log("Starting in development mode with Vite middleware...");
