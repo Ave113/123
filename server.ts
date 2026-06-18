@@ -1018,6 +1018,11 @@ Văn phong trình bày bằng Markdown gọn gàng, súc mộc nhưng đanh thé
     try {
       const { baseInterpretation, chartData, history, question, customApiKey, modelSelection } = req.body;
       if (!question || !String(question).trim()) return res.status(400).json({ error: "Thiếu câu hỏi." });
+      // Guard: cần đủ 12 cung để tra cứu sao/cung đáng tin. Thiếu cung thì các quan hệ
+      // hình học (tam phương, xung chiếu) không đáng tin — chặn sớm thay vì để AI luận khuyết.
+      if (!Array.isArray(chartData?.palaces) || chartData.palaces.length < 12) {
+        return res.status(400).json({ error: "Dữ liệu lá số không hợp lệ: thiếu thông tin 12 cung. Vui lòng an lại lá số đầy đủ trước khi hỏi đáp." });
+      }
       const { finalApiKey, modelName } = resolveKeyAndModel(customApiKey, modelSelection);
       if (!finalApiKey) return res.status(400).json({ error: "Yêu cầu khóa API cá nhân: vui lòng nhập và lưu Google Gemini API Key trước khi hỏi đáp." });
       const ai = new GoogleGenAI({ apiKey: finalApiKey, httpOptions: { headers: { "User-Agent": "aistudio-build" } } });
@@ -1051,7 +1056,7 @@ Văn phong trình bày bằng Markdown gọn gàng, súc mộc nhưng đanh thé
 
       const { response, finalModelName, fallbackUsed } = await generateWithFallback(ai, modelName, prompt, CHAT_SYSTEM_INSTRUCTION);
       const answer = (response.text || "").trim();
-      if (answer.length < 2) return res.status(502).json({ error: "Mô hình AI trả về phản hồi rỗng. Vui lòng thử lại.", rateLimited: true, retryAfter: 10 });
+      if (answer.length < 10) return res.status(502).json({ error: "Mô hình AI trả về phản hồi rỗng hoặc quá ngắn (có thể do nghẽn mạng tạm thời). Vui lòng thử lại.", rateLimited: true, retryAfter: 10 });
       res.json({ answer, modelUsed: finalModelName, fallbackUsed });
     } catch (error: any) {
       console.error("Lỗi hỏi đáp follow-up:", error);
@@ -1064,6 +1069,11 @@ Văn phong trình bày bằng Markdown gọn gàng, súc mộc nhưng đanh thé
     try {
       const { chartA, chartB, customApiKey, modelSelection } = req.body;
       if (!chartA || !chartB) return res.status(400).json({ error: "Cần đủ dữ liệu hai lá số để so hợp tuổi." });
+      // Guard: mỗi lá số cần đủ 12 cung để xác định quan hệ can chi / Mệnh / Phu Thê đáng tin.
+      if (!Array.isArray(chartA?.palaces) || chartA.palaces.length < 12 ||
+          !Array.isArray(chartB?.palaces) || chartB.palaces.length < 12) {
+        return res.status(400).json({ error: "Dữ liệu lá số không hợp lệ: một trong hai lá số thiếu thông tin 12 cung. Vui lòng an lại lá số đầy đủ trước khi so hợp tuổi." });
+      }
       const { finalApiKey, modelName } = resolveKeyAndModel(customApiKey, modelSelection);
       if (!finalApiKey) return res.status(400).json({ error: "Yêu cầu khóa API cá nhân: vui lòng nhập và lưu Google Gemini API Key trước khi so hợp tuổi." });
       const ai = new GoogleGenAI({ apiKey: finalApiKey, httpOptions: { headers: { "User-Agent": "aistudio-build" } } });
