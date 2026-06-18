@@ -5,6 +5,13 @@ import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 import { TU_HOA_BY_STEM, HOA_LABELS, STEM_NAME_BY_YEAR_MOD } from "./src/utils/tuHoa";
 import { getDamTinhForStars, getDamTinhForAuxStars, getDamTinhTuHoa, getDamTinhTuHoaDetail } from "./src/knowledge/damTinh";
+import {
+  buildChartIndex,
+  buildRelationsBlock,
+  buildNatalTuHoaLines,
+  buildFlyingTuHoaLines,
+  satKyStarsInPalace,
+} from "./src/utils/chartRelations";
 
 dotenv.config();
 
@@ -1028,12 +1035,18 @@ Văn phong trình bày bằng Markdown gọn gàng, súc mộc nhưng đanh thé
       if (!finalApiKey) return res.status(400).json({ error: "Yêu cầu khóa API cá nhân: vui lòng nhập và lưu Google Gemini API Key trước khi hỏi đáp." });
       const ai = new GoogleGenAI({ apiKey: finalApiKey, httpOptions: { headers: { "User-Agent": "aistudio-build" } } });
 
-      const CHAT_SYSTEM_INSTRUCTION = `Bạn là một Minh Sư Tử Vi đang tiếp tục tư vấn cho đương số DỰA TRÊN ĐÚNG dữ liệu lá số và bản luận giải đã cung cấp bên dưới. Nguyên tắc:\n- CHỈ dựa vào DỮ LIỆU LÁ SỐ (12 cung, sao thực có, vận hạn) và bản luận giải gốc; TUYỆT ĐỐI không bịa sao không có trong dữ liệu.\n- Khi trả lời, hãy TRA ĐÚNG cung/sao liên quan câu hỏi: hỏi tình duyên soi cung Phu Thê, hỏi tiền soi Tài Bạch/Quan Lộc, hỏi sức khỏe soi Tật Ách... dựa vào sao thực đóng ở cung đó. Khi cần, liên kết tam phương tứ chính (xung chiếu, tam hợp), nhị hợp/lục hại và tứ hóa để luận cho có chiều sâu, KHÔNG luận sao đứng đơn lẻ.\n- Nếu bản văn luận giải không nêu chi tiết, ưu tiên tra trực tiếp DỮ LIỆU LÁ SỐ; nếu cả hai đều không đủ, nói rõ thiếu dữ kiện thay vì bịa.\n- Giữ giọng "Nói Thật & Trực Diện": có cát nói cát, có hung nói hung, hướng đương số tự điều chỉnh hành vi.\n- NGÔN TỪ ĐỜI THỰC, ĐA DẠNG, CHÍNH XÁC: tuyệt đối tránh từ sáo rỗng mơ hồ kiểu "hao tài", "gặp xui", "rắc rối sự nghiệp"; phải dịch nghĩa sao/cung ra tình huống đời sống hiện đại cụ thể (lương thưởng, dòng tiền, đầu tư, công việc, học hành, yêu đương, sức khỏe, đi lại) hợp với bối cảnh đương số.\n- LỜI KHUYÊN MAY ĐO (không rập khuôn): bám đúng tổ hợp sao/cách cục thực có và độ tuổi của đương số; không áp công thức chung, không bắt đương số chống lại bản chất bẩm sinh.\n- Nếu câu hỏi không liên quan Tử Vi/lá số, lịch sự từ chối và kéo về chủ đề mệnh lý.\n\nCÁCH TRẢ LỜI (BẮT BUỘC — NGẮN GỌN, ĐÚNG TRỌNG TÂM):\n- ĐI THẲNG vào đáp án ngay câu đầu; CẤM mào đầu/chào hỏi/dẫn dắt ("Chào bạn", "Về câu hỏi của bạn...", "Theo lá số...").\n- CẤM lặp lại/tóm tắt lại bài luận giải gốc; chỉ trả lời ĐÚNG điều được hỏi.\n- ĐỘ DÀI: tối đa 4-6 câu hoặc 3-4 gạch đầu dòng cho câu hỏi thường; chỉ dài hơn khi đương số yêu cầu "phân tích kỹ/chi tiết".\n- Nêu kết luận trước, lý do (sao/cung) sau, gọn; tránh liệt kê lan man hay văn hoa sáo rỗng.\n- Nếu hợp, kết bằng 1 lời khuyên hành động cụ thể, ngắn.`;
+      const CHAT_SYSTEM_INSTRUCTION = `Bạn là một Minh Sư Tử Vi đang tiếp tục tư vấn cho đương số DỰA TRÊN ĐÚNG dữ liệu lá số và bản luận giải đã cung cấp bên dưới. Nguyên tắc:\n- CHỈ dựa vào DỮ LIỆU LÁ SỐ (12 cung, sao thực có, vận hạn) và bản luận giải gốc; TUYỆT ĐỐI không bịa sao không có trong dữ liệu.\n- CHỐNG BỊA ĐẶT Ở TẦNG DỮ LIỆU (BẮT BUỘC): hệ thống đã TÍNH SẴN cho bạn các khối "QUAN HỆ HÌNH HỌC TÍNH SẴN", "TỨ HÓA BẨM SINH" và "PHI TỨ HÓA LƯU NIÊN" (xung chiếu/tam hợp/nhị hợp/lục hại/đường bay Lộc-Quyền-Khoa-Kỵ cùng cung đích). Hãy DÙNG TRỰC TIẾP các dòng này; TUYỆT ĐỐI không tự nhẩm lại chỉ số index cung, không tự đoán sao bầu trời nào chiếu cung nào.\n- Khi trả lời, hãy TRA ĐÚNG cung/sao liên quan câu hỏi: hỏi tình duyên soi cung Phu Thê, hỏi tiền soi Tài Bạch/Quan Lộc, hỏi sức khỏe soi Tật Ách... dựa vào sao thực đóng ở cung đó và khối quan hệ tính sẵn của cung đó. Khi cần, liên kết tam phương tứ chính (xung chiếu, tam hợp), nhị hợp/lục hại và tứ hóa để luận cho có chiều sâu, KHÔNG luận sao đứng đơn lẻ.\n- LUÔN NHẤT QUÁN với bản luận giải gốc và các lượt hỏi đáp trước: không được trả lời mâu thuẫn với chính mình đã nói; nếu cần điều chỉnh, nói rõ lý do dựa trên sao/cung nào.\n- Nếu bản văn luận giải không nêu chi tiết, ưu tiên tra trực tiếp DỮ LIỆU LÁ SỐ; nếu cả hai đều không đủ, nói rõ thiếu dữ kiện thay vì bịa.\n- Giữ giọng "Nói Thật & Trực Diện": có cát nói cát, có hung nói hung, hướng đương số tự điều chỉnh hành vi.\n- NGÔN TỪ ĐỜI THỰC, ĐA DẠNG, CHÍNH XÁC: tuyệt đối tránh từ sáo rỗng mơ hồ kiểu "hao tài", "gặp xui", "rắc rối sự nghiệp"; phải dịch nghĩa sao/cung ra tình huống đời sống hiện đại cụ thể (lương thưởng, dòng tiền, đầu tư, công việc, học hành, yêu đương, sức khỏe, đi lại) hợp với bối cảnh đương số.\n- LỜI KHUYÊN MAY ĐO (không rập khuôn): bám đúng tổ hợp sao/cách cục thực có và độ tuổi của đương số; không áp công thức chung, không bắt đương số chống lại bản chất bẩm sinh.\n- Nếu câu hỏi không liên quan Tử Vi/lá số, lịch sự từ chối và kéo về chủ đề mệnh lý.\n\nCÁCH TRẢ LỜI (BẮT BUỘC — NGẮN GỌN, ĐÚNG TRỌNG TÂM):\n- ĐI THẲNG vào đáp án ngay câu đầu; CẤM mào đầu/chào hỏi/dẫn dắt ("Chào bạn", "Về câu hỏi của bạn...", "Theo lá số...").\n- CẤM lặp lại/tóm tắt lại bài luận giải gốc; chỉ trả lời ĐÚNG điều được hỏi.\n- ĐỘ DÀI: tối đa 4-6 câu hoặc 3-4 gạch đầu dòng cho câu hỏi thường; chỉ dài hơn khi đương số yêu cầu "phân tích kỹ/chi tiết".\n- Nêu kết luận trước, lý do (sao/cung) sau, gọn; tránh liệt kê lan man hay văn hoa sáo rỗng.\n- Nếu hợp, kết bằng 1 lời khuyên hành động cụ thể, ngắn.`;
 
-      // Dựng phần dữ liệu lá số gọn (phương án B): 12 cung + sao thực + vận hạn.
-      // Chỉ liệt kê sao thực có để AI tra cứu, KHÔNG kèm cheat sheet nặng.
+      // Dựng phần dữ liệu lá số: 12 cung + sao thực + vận hạn, KÈM lưới quan hệ
+      // hình học (tam phương / xung chiếu / nhị hợp / lục hại / phi tứ hóa) ĐÃ
+      // TÍNH SẴN cho TRỌN 12 cung. Mục đích: chat bám sát đúng 12 cung + sao +
+      // logic toán đồng bộ với /api/interpret, không để AI tự nhẩm index khi user
+      // hỏi đáp nhiều lần (chống bịa/mơ hồ). Nhúng đủ 12 cung để AI tự chọn đúng
+      // cung theo câu hỏi mà không trượt (linh hoạt hơn matching từ khóa); lá số
+      // chỉ có 12 cung text thuần nên không phình prompt đáng kể.
       const buildChartContext = (cd: any): string => {
         if (!cd || !Array.isArray(cd.palaces)) return "(Không có dữ liệu lá số kèm theo — chỉ dựa vào bản văn luận giải.)";
+        const idx = buildChartIndex(cd.palaces);
         const head = [
           `- Giới tính: ${cd.gender || "?"} | Cầm tinh: ${cd.zodiac || "?"} | Cục: ${cd.fiveElementsClass || "?"}`,
           `- Can chi: ${cd.chineseDate || "?"} | Thiên can năm sinh: ${cd.birthHeavenlyStem || "?"}`,
@@ -1046,7 +1059,41 @@ Văn phong trình bày bằng Markdown gọn gàng, súc mộc nhưng đanh thé
           const extras = [minor && `Trợ/Lưu: ${minor}`, adj && `Sát/Tạp: ${adj}`].filter(Boolean).join(" | ");
           return `  - ${p.name} (${p.earthlyBranch || "?"}, can ${p.heavenlyStem || "?"})${p.isBodyPalace ? " [THÂN]" : ""}: ${major}${extras ? " | " + extras : ""}`;
         }).join("\n");
-        return `${head}\n12 CUNG:\n${palaceLines}`;
+
+        // Tứ Hóa bẩm sinh (natal) — nền gốc, luôn kèm vì câu hỏi nào cũng có thể chạm.
+        const natalLines = buildNatalTuHoaLines(idx, cd.birthHeavenlyStem);
+        const natalStr = natalLines
+          ? natalLines.map((l) => `  - ${l}`).join("\n")
+          : "  - Chưa xác định được Thiên can năm sinh nên KHÔNG tính sẵn Tứ Hóa bẩm sinh (đừng tự suy đoán vị trí sao).";
+
+        // Nhúng sẵn quan hệ hình học + phi tứ hóa + sát/kỵ cho TRỌN 12 cung.
+        // Bỏ matching từ khóa (giòn, không phủ hết cách diễn đạt của user): khi
+        // mọi cung đều có sẵn dữ liệu tính sẵn, AI tự chọn đúng cung theo câu hỏi
+        // mà không bao giờ trượt cung, không phải tự nhẩm index. Đây là text thuần
+        // nên không phải gánh nặng đáng kể với model.
+        const relationBlocks = cd.palaces.map((p: any) => {
+          const rel = buildRelationsBlock(idx, p);
+          const sat = satKyStarsInPalace(p);
+          const satLine = sat.length > 0
+            ? `  - Sát/kỵ tinh thực có tại cung này: ${sat.join(", ")}`
+            : "  - Cung này không gánh sát/kỵ tinh cực đoan.";
+          return `${rel}\n${satLine}`;
+        }).join("\n\n");
+
+        // Phi tứ hóa Lưu niên (theo can năm xem hạn) — dùng khi hỏi vận hạn năm.
+        const luuStem = STEM_NAME_BY_YEAR_MOD[(((Number(cd.transitYear) || 2026) % 10) + 10) % 10];
+        const luuFlying = buildFlyingTuHoaLines(idx, luuStem);
+        const luuStr = luuFlying.length > 0
+          ? luuFlying.map((l) => `  - ${l}`).join("\n")
+          : "  - Chưa xác định được can Lưu niên.";
+
+        return [
+          head,
+          `12 CUNG (sao thực có):\n${palaceLines}`,
+          `TỨ HÓA BẨM SINH (đã tính sẵn — DÙNG TRỰC TIẾP, không tự tra bảng can):\n${natalStr}`,
+          `PHI TỨ HÓA LƯU NIÊN ${cd.transitYear || 2026} (can ${luuStem}, đã tính sẵn — dùng khi hỏi vận hạn năm):\n${luuStr}`,
+          `QUAN HỆ HÌNH HỌC TÍNH SẴN — TRỌN 12 CUNG (xung chiếu/tam hợp/nhị hợp/lục hại/phi tứ hóa — DÙNG TRỰC TIẾP đúng cung liên quan câu hỏi, TUYỆT ĐỐI không tự nhẩm lại index):\n${relationBlocks}`,
+        ].join("\n\n");
       };
       const chartContext = buildChartContext(chartData);
 
