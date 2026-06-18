@@ -16,9 +16,8 @@ import {
 
 dotenv.config();
 
-async function startServer() {
-  const app = express();
-  const PORT = 3000;
+const app = express();
+const PORT = 3000;
 
   app.use(express.json({ limit: "10mb" }));
 
@@ -1182,11 +1181,22 @@ Văn phong trình bày bằng Markdown gọn gàng, súc mộc nhưng đanh thé
   // Serve static assets in production, and run Vite devserver in dev mode
   if (process.env.NODE_ENV !== "production") {
     console.log("Starting in development mode with Vite middleware...");
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
+    (async () => {
+      try {
+        const vite = await createViteServer({
+          server: { middlewareMode: true },
+          appType: "spa",
+        });
+        app.use(vite.middlewares);
+        if (!process.env.VERCEL) {
+          app.listen(PORT, "0.0.0.0", () => {
+            console.log(`Express server running on port ${PORT}`);
+          });
+        }
+      } catch (err) {
+        console.error("Failed to start development server:", err);
+      }
+    })();
   } else {
     console.log("Starting in production mode...");
     const distPath = path.join(process.cwd(), "dist");
@@ -1194,11 +1204,13 @@ Văn phong trình bày bằng Markdown gọn gàng, súc mộc nhưng đanh thé
     app.get("*", (req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
     });
+
+    // Only start listening if we are not running on serverless Vercel
+    if (!process.env.VERCEL) {
+      app.listen(PORT, "0.0.0.0", () => {
+        console.log(`Express server running on port ${PORT}`);
+      });
+    }
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Express server running on port ${PORT}`);
-  });
-}
-
-startServer();
+export default app;
