@@ -159,3 +159,86 @@ export const satKyStarsInPalace = (p: any): string[] =>
   allStarsOf(p)
     .filter((s: any) => SAT_KY_STARS.includes(normalizeStarName(s.name)))
     .map((s: any) => s.name);
+
+// ----------------------------------------------------------------------------
+// LIÊN KẾT ĐA CHIỀU (cho /api/chat) — NỐI ĐỘNG LỰC TỨ HÓA VỐI CUNG ĐÍCH
+// ----------------------------------------------------------------------------
+// Trước đây code chỉ cung cấp các chiều RỜI RẠC (12 cung, tứ hóa, vận hạn) rồi
+// để AI tự xâu chuỗi. Hàm này tính SẴN GIAO ĐIỂM giữa các chiều: một đường
+// tứ hóa (bẩm sinh hoặc lưu niên) bay vào cung nào -> lĩnh vực đời sống của cung
+// đó + sắc thái được/mất theo loại Hóa. CODE CHỈ ghi giao điểm TRUNG TÍNH; việc
+// luận cát/hung cụ thể (phụ thuộc miếu hãm, tổ hợp sao) vẫn để AI.
+
+// Lĩnh vực đời sống theo tên cung (khớp từ khóa có trong tên cung iztro vi-VN).
+const PALACE_DOMAIN: { kw: string; domain: string }[] = [
+  { kw: "Mệnh", domain: "bản thân, tính cách, hướng đi chủ đạo" },
+  { kw: "Phu Thê", domain: "hôn nhân, bạn đời, tình cảm đôi lứa" },
+  { kw: "Tài Bạch", domain: "tiền bạc, thu nhập, dòng tiền" },
+  { kw: "Quan Lộc", domain: "công việc, sự nghiệp, công danh, học hành" },
+  { kw: "Điền", domain: "nhà cửa, đất đai, tài sản lớn" },
+  { kw: "Phúc", domain: "tinh thần, phúc báo, an/bất an nội tại" },
+  { kw: "Tật Ách", domain: "sức khỏe, bệnh tật, tai ốm" },
+  { kw: "Thiên Di", domain: "di chuyển, xuất ngoại, môi trường ngoài" },
+  { kw: "Nô Bộc", domain: "bạn bè, đồng nghiệp, cộng sự" },
+  { kw: "Tử Tức", domain: "con cái, dự án tâm huyết" },
+  { kw: "Phụ Mẫu", domain: "cha mẹ, cấp trên, thầy" },
+  { kw: "Huynh Đệ", domain: "anh chị em, cộng tác gần" },
+];
+
+const domainOfPalace = (palaceName: string): string => {
+  const name = String(palaceName || "");
+  const hit = PALACE_DOMAIN.find((d) => name.includes(d.kw));
+  return hit ? hit.domain : "lĩnh vực của cung này";
+};
+
+// Sắc thái trung tính theo loại Hóa (không phán cát/hung tuyệt đối, chỉ gợi hướng).
+const HOA_TONE: Record<string, string> = {
+  "Hóa Lộc": "thêm thuận lợi / sinh lợi / cơ hội",
+  "Hóa Quyền": "thêm quyền lực / chủ động / áp lực trách nhiệm",
+  "Hóa Khoa": "thêm danh tiếng / quý nhân / hóa giải",
+  "Hóa Kỵ": "thêm vướng mắc / hao tổn / ám ảnh / rạn nứt",
+};
+const toneOfHoa = (hoaLabel: string): string => HOA_TONE[hoaLabel] || "biến động";
+
+// Dựng các dòng liên kết cho MỘT can: mỗi Hóa -> sao thụ hóa -> cung đích ->
+// lĩnh vực + sắc thái. Bỏ qua Hóa mà sao đích không có trên lá số.
+const crossLinkLinesForStem = (
+  idx: ChartIndex,
+  stem: string | undefined,
+  context: string,
+): string[] => {
+  const key = typeof stem === "string" ? stem.trim() : stem;
+  const tuhoa = key ? TU_HOA_BY_STEM[key] : undefined;
+  if (!tuhoa) return [];
+  const lines: string[] = [];
+  tuhoa.forEach((star, i) => {
+    const dest = findStarBranch(idx, star);
+    if (dest < 0) return; // sao không có trên lá số -> không có giao điểm để nối
+    const destPalace = idx.palaceByBranch[dest];
+    const destName = destPalace?.name || BRANCHES_VI[dest];
+    const hoaLabel = HOA_LABELS[i];
+    lines.push(
+      `  - [${context}] ${hoaLabel} (qua ${star}) → ${destName} (${BRANCHES_VI[dest]}): ` +
+      `tác động tới ${domainOfPalace(destName)} — ${toneOfHoa(hoaLabel)}.`
+    );
+  });
+  return lines;
+};
+
+// Liên kết đa chiều tổng hợp: nối tứ hóa BẨM SINH và phi tứ hóa LƯU NIÊN với
+// cung đích + lĩnh vực đời sống, giúp AI thấy NGAY "đường dây" giữa các chiều
+// thay vì tự xâu chuỗi. birthStem = can năm sinh; luuStem = can năm xem hạn.
+export const buildCrossLinks = (
+  idx: ChartIndex,
+  birthStem: string | undefined,
+  luuStem: string | undefined,
+  transitYear: number | string | undefined,
+): string => {
+  const natal = crossLinkLinesForStem(idx, birthStem, "BẨM SINH");
+  const luu = crossLinkLinesForStem(idx, luuStem, `LƯU NIÊN ${transitYear ?? ""}`.trim());
+  const all = [...natal, ...luu];
+  if (all.length === 0) {
+    return "  - Chưa đủ dữ liệu can (năm sinh / lưu niên) để nối liên kết đa chiều.";
+  }
+  return all.join("\n");
+};
