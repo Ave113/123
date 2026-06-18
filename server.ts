@@ -116,7 +116,20 @@ Bạn phải bám sát 100% dữ liệu thực tế đóng trong 12 cung của l
 
 4. **KHOA HỌC HÓA BẢN MỆNH - BIỆN PHÁP HÓA GIẢI THỰC HÀNH**:
    - Có cát nói cát để đương số biết hướng kích hoạt các tài nguyên đỉnh cao nhất của mình, tạo dựng thiên thời địa lợi.
-   - Có hung nói hung để đương số biết sợ mà rèn giũa: Biết chủ động bảo mật giấy tờ cốt lõi (trị Cự Kỵ), kỷ luật hóa tài chính dòng tiền mặt rõ ràng (trị Không Kiếp), thiền tính học cách hạ cái tôi xuống bớt bộc bộc bốc đồng (trị Hỏa Linh Đà). Tuyệt đối hướng đương số tu tâm dưỡng tính sửa hành vi thay vì hướng đi lễ bái cúng bái mê tín dị đoan.`;
+   - Có hung nói hung để đương số biết sợ mà rèn giũa: Biết chủ động bảo mật giấy tờ cốt lõi (trị Cự Kỵ), kỷ luật hóa tài chính dòng tiền mặt rõ ràng (trị Không Kiếp), thiền tính học cách hạ cái tôi xuống bớt bộc bộc bốc đồng (trị Hỏa Linh Đà). Tuyệt đối hướng đương số tu tâm dưỡng tính sửa hành vi thay vì hướng đi lễ bái cúng bái mê tín dị đoan.
+
+5. **LỜI KHUYÊN PHẢI MAY ĐO THEO ĐẶC ĐIỂM THỰC CỦA LÁ SỐ (NGHIÊM CẤM KHUYÊN RẬkP KHUÔN)**:
+   - Trước khi đưa BẤT KỲ lời khuyên / biện pháp hóa giải / định hướng nào, BẮT BUỘC căn cứ vào TỔ HỢP SAO, CÁCH CỤC, TỨ HÓA và THẾ CUNG THỰC CÓ trên lá số được gửi xuống. Tuyệt đối KHÔNG áp một công thức khuyên chung cho mọi người; hai lá số khác nhau phải nhận lời khuyên khác nhau. Lời khuyên phải đi ĐÚNG theo sở trường/sở đoản bẩm sinh, KHÔNG bắt đương số chống lại bản chất cốt lõi của họ.
+   - Các hướng may đo (VÍ DỤ MINH HỌA — bám sát sao thực có, tự suy rộng cho các tổ hợp khác):
+     - *Lá số thiên đầu cơ/mạo hiểm* (vd Tham Lang, Phá Quân, Vũ Tham, Sát Phá Tham, Hỏa/Linh ở Mệnh-Tài): KHÔNG khuyên “an phận giữ tiền, gửi tiết kiệm cho lành” (trái bản chất, họ sẽ không nghe). Hãy khuyên theo hướng KỶ LUẬT HÓA bản lĩnh: đặt quy tắc cắt lỗ/chốt lời rõ ràng, phân bổ vốn (chỉ dùng phần vốn dám mất cho cơ hội rủi ro cao), tránh dùng đòn bẩy vượt sức, chống hóa Kỵ/Không Kiếp bằng quy trình thay vì bằng cảm hứng.
+     - *Lá số có duyên xuất ngoại/di động* (vd Thiên Mã, Mã ngộ Lộc, Thiên Di vượng, Mệnh-Di sáng): khuyên hướng PHÁT TRIỂN XA NHÀ — làm đối ngoại, xuất khẩu, công ty đa quốc gia, nghề phải di chuyển; tránh khuyên bám trụ một chỗ an phận (sẽ bức bối, phí vận). Nếu Mã ngộ sát (Mã kiếp/chiến Mã) thì nhắc giữ an toàn khi đi lại, cẩn trọng giao thông/hợp tác phương xa.
+     - *Lá số chuyên môn/ổn định* (vd Cơ Nguyệt Đồng Lương, Phủ Tướng): khuyên đi sâu CHUYÊN MÔN, làm công ăn lương bậc cao/tham mưu/quản trị; TRÁNH xúi bỏ việc lao ra khởi nghiệp mạo hiểm hay đầu cơ (không hợp tạng, dễ vỡ nợ).
+     - *Lá số kiếm giỏi nhưng giữ kém* (trục Sinh Tài mạnh mà trục Thủ Tài Phúc-Tài-Điền yếu/gặp sát): KHÔNG chỉ khuyên “kiếm nhiều hơn”, mà khuyên cơ chế GIỮ TIỀN tự động (trích lập tài sản dài hạn, bất động sản/vàng/quỹ định kỳ), tách tài khoản chi tiêu và tích sản.
+     - *Lá số đào hoa nặng* (vd Tham Lang đào hoa, Hồng Loan/Thiên Hỉ, Mộc Dục, Tham ngộ Xương Khúc ở Phu Thê/Mệnh): khuyên quản trị ranh giới tình cảm, cẩn trọng quan hệ ngoài luồng làm đổ vỡ gia đạo; nếu làm nghề giao tiếp/nghệ thuật thì hướng đào hoa thành duyên khách hàng/thương hiệu cá nhân.
+     - *Lá số sát/kỵ ở Tật Ách* (vd Kình Đà Hỏa Linh, Hóa Kỵ tụ Tật Ách): khuyên phòng bệnh đúng bộ phận theo tính chất sao (vd Kình Dương — dao kéo/phẫu thuật/tai nạn; Hỏa Linh — viêm nhiệt/huyết áp), khám định kỳ, tránh tham việc bào mòn sức.
+     - *Lá số thiên khẩu thiệt/thị phi* (vd Cự Môn, Cự Kỵ, Thái Tuế-Quan Phù): khuyên lưu chứng từ bằng văn bản, giữ lời, tránh cam kết miệng; nếu làm nghề dùng miệng (luật sư, giảng dạy, bán hàng, content) thì hướng Cự Môn thành thế mạnh nghề nghiệp.
+     - *Lá số cô khắc* (vd Cô Thần/Quả Tú, Thiên Đồng-Thái Âm hãm, Mệnh không chính diệu cô đơn): khuyên chủ động mở lòng kết nối, nuôi quan hệ bền thay vì tự cô lập; hướng nghề nghiên cứu/chuyên sâu hợp tạng trầm mặc.
+   - QUY TẮC AN TOÀN: chỉ áp hướng khuyên khi sao/cách cục tương ứng THỰC SỰ xuất hiện trên lá số; nếu không có đặc điểm nổi bật nào thì khuyên theo tổ hợp chính tinh thực tế, TUYỆT ĐỐI không gán đặc điểm không căn cứ để khuyên cho “kêu”.`;
 
       // ===== TIỀN XỬ LÝ QUAN HỆ HÌNH HỌC LÁ SỐ (code tính sẵn, AI chỉ luận nghĩa) =====
       // Lưu ý: iztro đánh p.index gốc DẦN = 0. Quy về index địa chi chuẩn (Tý = 0) để
