@@ -43,7 +43,14 @@ export const AIInterpreter: React.FC<AIInterpreterProps> = ({
   const [readerTheme, setReaderTheme] = React.useState<"cream" | "white" | "dark">(() => {
     return (localStorage.getItem("tuvi_reader_theme") as "cream" | "white" | "dark") || "cream";
   });
-  const [readerFontFamily, setReaderFontFamily] = React.useState<"serif" | "sans">("serif");
+  const [readerFontFamily, setReaderFontFamilyState] = React.useState<"serif" | "sans">(() => {
+    return (localStorage.getItem("tuvi_reader_font_family") as "serif" | "sans") || "serif";
+  });
+  // Bọc setter để luôn lưu lựa chọn font, đồng bộ với fontSize/theme/minimalMode.
+  const setReaderFontFamily = (family: "serif" | "sans") => {
+    setReaderFontFamilyState(family);
+    localStorage.setItem("tuvi_reader_font_family", family);
+  };
   const [showBreathingGuide, setShowBreathingGuide] = React.useState<boolean>(true);
   const [breathSec, setBreathSec] = React.useState<number>(0);
 
