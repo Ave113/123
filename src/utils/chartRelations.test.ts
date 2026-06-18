@@ -10,6 +10,7 @@ import {
   buildNatalTuHoaLines,
   buildRelationsBlock,
   satKyStarsInPalace,
+  buildCrossLinks,
 } from "./chartRelations";
 
 // Lá số giả tối thiểu theo quy ước iztro (palace.index 0 = Dần).
@@ -108,5 +109,31 @@ describe("satKyStarsInPalace", () => {
     const idx = buildChartIndex(buildPalaces());
     const tai = idx.palacesArr.find((p: any) => p.name === "Cung Tài Bạch");
     expect(satKyStarsInPalace(tai)).toContain("Kình Dương");
+  });
+});
+
+describe("buildCrossLinks - liên kết đa chiều", () => {
+  const idx = buildChartIndex(buildPalaces());
+  it("nối Hóa Lộc bẩm sinh (Liêm Trinh ở Phu Thê) với lĩnh vực hôn nhân", () => {
+    // Can Giáp: Hóa Lộc -> Liêm Trinh (đang ở Cung Phu Thê trong mock)
+    const out = buildCrossLinks(idx, "Giáp", undefined, 2026);
+    expect(out).toContain("BẨM SINH");
+    expect(out).toContain("Hóa Lộc");
+    expect(out).toContain("Cung Phu Thê");
+    expect(out).toContain("hôn nhân");
+  });
+  it("nối Hóa Kỵ bẩm sinh (Thái Dương) với sắc thái hao tổn/vướng mắc", () => {
+    const out = buildCrossLinks(idx, "Giáp", undefined, 2026);
+    expect(out).toContain("Hóa Kỵ");
+    expect(out).toContain("hao tổn");
+  });
+  it("bỏ qua Hóa mà sao đích không có trên lá số (Phá Quân/Vũ Khúc không có trong mock)", () => {
+    const out = buildCrossLinks(idx, "Giáp", undefined, 2026);
+    expect(out).not.toContain("Phá Quân");
+    expect(out).not.toContain("Vũ Khúc");
+  });
+  it("thiếu cả hai can -> báo chưa đủ dữ liệu, không crash", () => {
+    const out = buildCrossLinks(idx, undefined, undefined, undefined);
+    expect(out).toContain("Chưa đủ dữ liệu");
   });
 });
