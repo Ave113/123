@@ -520,10 +520,14 @@ Bạn phải bám sát 100% dữ liệu thực tế đóng trong 12 cung của l
       const luuThaiTueIdxRaw = chartData.transitLuuThaiTueIndex;
       const birthLunarMonth = Number(chartData.birthLunarMonth) || 0;
       const birthHourIdx = Number(chartData.birthHourIndex);
+      // luuThaiTueIdxRaw PHẢI là index địa chi chuẩn (Tý=0 … Hợi=11) để khớp palaceByBranch.
+      // Siết miền [0,11]: nếu client gửi index sai hệ (vd index gốc iztro Dần=0 chưa quy đổi)
+      // hoặc ngoài miền, phép %12 vẫn chạy nhưng cung Đẩu Quân sẽ lệch -> chặn sớm, báo thiếu.
+      const birthHourIdxValid = Number.isInteger(birthHourIdx) && birthHourIdx >= 0 && birthHourIdx <= 11;
       const hasLuuNguyetData =
-        Number.isInteger(luuThaiTueIdxRaw) && luuThaiTueIdxRaw >= 0 &&
+        Number.isInteger(luuThaiTueIdxRaw) && luuThaiTueIdxRaw >= 0 && luuThaiTueIdxRaw <= 11 &&
         birthLunarMonth >= 1 && birthLunarMonth <= 12 &&
-        Number.isInteger(birthHourIdx) && birthHourIdx >= 0;
+        birthHourIdxValid;
 
       // Ngũ Hổ Độn: can tháng Giêng theo can năm. Giáp/Kỷ->Bính, Ất/Canh->Mậu,
       // Bính/Tân->Canh, Đinh/Nhâm->Nhâm, Mậu/Quý->Giáp. Tháng sau tiến 1 can.
@@ -751,11 +755,11 @@ Hệ thống đã an sẵn cung an trú của từng tháng âm lịch trong nă
 ${luuNguyetReportStr}
 
 --- CHEAT SHEET: VÒNG TRƯỜNG SINH (THẾ ĐẤT SAO MẠNH/YẾU — HỆ THỐNG GOM SẴN) ---
-Mỗi cung trọng yếu đứng ở một thế đất của vòng Tràng Sinh 12. Nguyên tắc: sao dù tốt nhưng đóng cung YẾU (Tử/Tuyệt/Mộ/Bệnh/Suy/Thai) thì giảm lực, dễ HỮU DANH VÔ THỰC; đóng cung MẠNH (Trường Sinh/Đế Vượng/Lâm Quan/Quan Đới) thì phát huy trọn vẹn. Dùng để hiệu chỉnh mức độ mạnh/yếu khi luận sao ở Phần 1, 2 và 9 — tránh khen quá lời sao tốt đang ở thế đất suy:
+Mỗi cung trọng yếu đứng ở một thế đất của vòng Tràng Sinh 12. Nguyên tắc: sao dù tốt nhưng đóng cung YẾU (Tử/Tuyệt/Mộ/Bệnh/Suy/Thai) thì giảm lực, dễ HỮU DANH VÔ THỰC; đóng cung MẠNH (Trường Sinh/Đế Vượng/Lâm Quan/Quan Đới) thì phát huy trọn vẹn. Dùng để hiệu chỉnh mức độ mạnh/yếu khi luận sao ở Phần 1, Phần 2 và Phần 9 (định cách phú quý) — tránh khen quá lời sao tốt đang ở thế đất suy:
 ${truongSinhReportStr}
 
 --- CHEAT SHEET: ĐẾM CÁT/HUNG ĐỊNH CÁCH PHÚ QUÝ (HỆ THỐNG ĐẾM SẴN) ---
-Hệ thống đã đếm số cát tinh phúc lộc và hung sát tinh ở tam phương trục cốt (Mệnh-Tài-Quan + xung chiếu + Phúc Đức). Đây là cơ sở KHÁCH QUAN để chấm tầng phúc lộc tổng thể ở Phần 10; con số chỉ là gợi ý, phải đặt trong bối cảnh miếu/hãm, cách cục và thế đất Tràng Sinh để luận cho đúng, KHÔNG chỉ đếm số rồi kết luận máy móc:
+Hệ thống đã đếm số cát tinh phúc lộc và hung sát tinh ở tam phương trục cốt (Mệnh-Tài-Quan + xung chiếu + Phúc Đức). Đây là cơ sở KHÁCH QUAN để chấm tầng phúc lộc tổng thể ở Phần 9 (định cách phú quý); con số chỉ là gợi ý, phải đặt trong bối cảnh miếu/hãm, cách cục và thế đất Tràng Sinh để luận cho đúng, KHÔNG chỉ đếm số rồi kết luận máy móc:
 ${phucLocReportStr}
 
 --- TINH TÌNH CHÍNH TINH THEO ĐÀM TINH (TRUNG CHÂU PHÁI — VƯƠNG ĐÌNH CHI) ---
@@ -829,12 +833,10 @@ Bạn hãy soạn thảo bình giải chi tiết gồm 10 phần lớn sau đây
    VĂN PHONG: dùng ngôn ngữ đời sống hiện đại, gần gũi với ai cũng gặp (lương thưởng, ốm đau, cãi vã, mua sắm, đi lại, học hành, yêu đương); chỉ nhắc đến hợp đồng/giấy tờ/pháp lý KHI bối cảnh lá số cho thấy đương số là người kinh doanh/đầu tư/làm ăn lớn. MỤC TIÊU cuối cùng: để đương số NHỚ NHANH được "năm nay tháng nào lo tiền, tháng nào lo sức khỏe, tháng nào thuận việc, tháng nào vui chuyện tình cảm" — gọn, trọng tâm, không dàn trải.
 
 8. **CUNG PHÚC ĐỨC: GỐC AN - BẤT AN & PHÚC BÁO HƯỞNG THỤ**:
-   Dùng cheat sheet "CỤM SAO PHÚC ĐỨC" làm trục chính (kết hợp tam phương tứ chính, nhị hợp lục hại vây quanh đã tính sẵn) để mổ xẻ chất lượng đời sống tinh thần, mức độ an hay bất an tự thân, phúc báo thừa hưởng và năng lực hưởng thụ thành quả của đương số. Theo tinh thần Trung Châu Phái: Phúc Đức tốt thì dù vất vả vẫn thấy đáng, lòng thanh thản; Phúc Đức gặp sát kỵ thì dễ tự dằn vặt, suy nghĩ tiêu cực, hưởng phúc không trọn dù tiền tài có dư. Chỉ rõ đương số cần tu dưỡng nội tâm điểm nào để gốc phúc dày thêm thay vì tự bào mòn an lạc.
+   Dùng TRỰC TIẾP cheat sheet "CỤM SAO PHÚC ĐỨC" hệ thống đã tính sẵn làm trục chính: chỉ được luận trên đúng các sao (chính tinh, trợ/cát tinh, sát/tạp tinh) và đúng các cung Xung chiếu / Tam hợp / Nhị hợp / Lục hại đã liệt kê sẵn trong cheat sheet. TUYỆT ĐỐI không tự nhẩm lại index cung, không thêm sao không có trong dữ liệu. Từ đó mổ xẻ chất lượng đời sống tinh thần, mức độ an hay bất an tự thân, phúc báo thừa hưởng và năng lực hưởng thụ thành quả của đương số.
+   NGÔN TỪ LINH HOẠT THEO ĐÚNG LOGIC SAO (bắt buộc, không dùng câu mẫu chung): nếu Phúc Đức có cát tinh/Hóa Lộc-Quyền-Khoa đời vào (theo đúng dữ liệu) thì luận gốc phúc dày, dù vất vả vẫn thấy đáng và lòng thanh thản; nếu có sát tinh/Hóa Kỵ (đối chiếu cheat sheet vùng sát kỵ) thì luận dễ tự dằn vặt, suy nghĩ tiêu cực, hưởng phúc không trọn dù tiền tài có dư; nếu Vô Chính Diệu thì mượn sao xung chiếu/tam hợp đã liệt kê để luận, KHÔNG gán sắc thái không căn cứ. Chỉ rõ đương số cần tu dưỡng nội tâm điểm nào để gốc phúc dày thêm thay vì tự bào mòn an lạc.
 
-9. **THẾ ĐẤT VÒNG TRÀNG SINH: SAO MẠNH HAY YẾU, THỰC LỰC HAY HỮU DANH VÔ THỰC**:
-   Dùng cheat sheet "VÒNG TRƯỜNG SINH" đã tính sẵn để hiệu chỉnh mức độ mạnh/yếu của sao theo thế đất. Đây là tầng tinh tế của thầy giỏi: một chính tinh đẹp (vd Tử Vi, Thiên Phủ) nhưng đóng cung Tử/Tuyệt/Mộ thì lực bị rút, dễ HỮU DANH VÔ THỰC (có tiếng mà không có miếng, khởi đầu hay mà cuối đuối sức); ngược lại sao ở Trường Sinh/Đế Vượng thì phát huy trọn vẹn, có hậu. Hãy đối chiếu thế đất của Mệnh, Tài, Quan, Phúc để chỉ rõ lĩnh vực nào của đương số có thực lực bền, lĩnh vực nào chỉ hào nhoáng bề ngoài hay dễ đuối về sau — để liệu sức mà tiến lui, không ảo tưởng vào cái danh suông.
-
-10. **ĐỊNH CÁCH PHÚ QUÝ BẦN TIỆN — CÂU KẾT TỔNG LỰC MỆNH**:
+9. **ĐỊNH CÁCH PHÚ QUÝ BẦN TIỆN — CÂU KẾT TỔNG LỰC MỆNH**:
    Đây là PHẦN CHỐT HẠ cuối bài. Dùng cheat sheet "ĐẾM CÁT/HUNG ĐỊNH CÁCH PHÚ QUÝ" kết hợp cách cục chính tinh, miếu/hãm và thế đất Tràng Sinh ở trên để ĐÚC KẾT một nhận định tổng về tầng phúc lộc của đương số: cốt cách thuộc tầng nào (phúc hậu / trung bình khá / lao tâm vất vả / thăng trầm lớn), điểm sáng nhất để nương vào và điểm hiểm nhất phải cảnh chừng cả đời. TUYỆT ĐỐI không phán máy móc theo số đếm (vd "5 cát 2 hung nên giàu") — con số chỉ là gợi ý, phải luận bằng cả chất lượng sao, miếu hãm và thế đất. Viết câu kết bằng giọng đanh thép, thật lòng của một danh sư — vừa thẳng thắn chỉ ra vận mệnh, vừa mở cho đương số con đường đức năng thắng số, tự cải vận bằng tu tâm sửa nết.
 
 Văn phong trình bày bằng Markdown gọn gàng, súc mộc nhưng đanh thép học thuật tột bậc. Mở đầu bằng một câu nói trực diện đầy uy lực xoáy sâu thẳng thắn nhân tính, từ ngữ thấu tỏ hiện đại và tâm can thực thụ của một danh sư hữu tâm!`;
