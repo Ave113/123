@@ -56,8 +56,20 @@ export interface TimezoneAdjustment {
  * Normalizes birth datetime into current Vietnamese timezone GMT+7 using historical rules
  */
  export function normalizeToHanoi(dateStr: string, timeStr: string, birthplace: string, originalTimezoneOffset?: number): TimezoneAdjustment {
-  const dtStr = `${dateStr}T${timeStr}:00`;
-  const originalDate = new Date(dtStr);
+  // Dựng Date từ thành phần số thay vì parse chuỗi ISO: cách parse chuỗi không
+  // offset phụ thuộc runtime. Constructor components luôn dùng local TZ, đồng nhất
+  // với toàn bộ getHours()/getMonth()... phía sau — giờ/ngày nhập luôn khớp, bất kể
+  // TZ máy. Kết quả y hệt hành vi cũ, chỉ bỏ phụ thuộc vào diễn giải chuỗi.
+  const [yStr, moStr, dStr] = String(dateStr).split("-");
+  const [hStr, miStr] = String(timeStr).split(":");
+  const originalDate = new Date(
+    Number(yStr),
+    Number(moStr) - 1,
+    Number(dStr),
+    Number(hStr),
+    Number(miStr),
+    0,
+  );
   let adjustedDate = new Date(originalDate.getTime());
   let note = "Giữ nguyên múi giờ GMT+7.";
   let timezoneLabel = "GMT+7";
@@ -129,7 +141,13 @@ export function getTuviGlobalTime(lunarMonth: number, date: Date): HourResult {
   const min = date.getMinutes();
   const timeMin = hour * 60 + min;
 
-  const offset = TUVI_GLOBAL_OFFSETS[lunarMonth] || 0;
+  // Siết lunarMonth về [1,12]: tránh trường hợp ngoài miền khiến offset rơi về 0
+  // (lệch toàn bộ khung giờ) mà không báo. Input hợp lệ (1..12 từ iztro) không đổi.
+  const safeMonth = Math.min(12, Math.max(1, Math.floor(Number(lunarMonth) || 1)));
+  if (safeMonth !== lunarMonth) {
+    console.warn(`[tuvi] lunarMonth ngoài miền 1..12: ${lunarMonth} -> dùng ${safeMonth}`);
+  }
+  const offset = TUVI_GLOBAL_OFFSETS[safeMonth];
   let branchIndex = 0;
   let dateShift = 0;
   let rangeStr = "";
@@ -451,17 +469,13 @@ export function calculateTransitInfo(
   // Determine Heavenly Stem of transitYear (Y % 10)
   // 0: Canh, 1: Tân, 2: Nhâm, 3: Quý, 4: Giáp, 5: Ất, 6: Bính, 7: Đinh, 8: Mậu, 9: Kỷ
   const transitStemIndex = transitYear % 10;
-  let luuLocTonIndex = 2; // default Giáp in Dần (2)
-  if (transitStemIndex === 0) luuLocTonIndex = 8; // Canh -> Thân(8)
-  else if (transitStemIndex === 1) luuLocTonIndex = 9; // Tân -> Dậu(9)
-  else if (transitStemIndex === 2) luuLocTonIndex = 11; // Nhâm -> Hợi(11)
-  else if (transitStemIndex === 3) luuLocTonIndex = 0; // Quý -> Tý(0)
-  else if (transitStemIndex === 4) luuLocTonIndex = 2; // Giáp -> Dần(2)
-  else if (transitStemIndex === 5) luuLocTonIndex = 3; // Ất -> Mão(3)
-  else if (transitStemIndex === 6) luuLocTonIndex = 5; // Bính -> Tỵ(5)
-  else if (transitStemIndex === 7) luuLocTonIndex = 6; // Đinh -> Ngọ(6)
-  else if (transitStemIndex === 8) luuLocTonIndex = 5; // Mậu -> Tỵ(5)
-  else if (transitStemIndex === 9) luuLocTonIndex = 6; // Kỷ -> Ngọ(6)
+  // Lưu Lộc Tồn theo can năm hạn (key = year%10): 0:Canh->Thân, 1:Tân->Dậu,
+  // 2:Nhâm->Hợi, 3:Quý->Tý, 4:Giáp->Dần, 5:Ất->Mão, 6:Bính->Tỵ, 7:Đinh->Ngọ,
+  // 8:Mậu->Tỵ, 9:Kỷ->Ngọ. Cùng pattern với LUU_VAN_XUONG_BY_STEM bên dưới.
+  const LUU_LOC_TON_BY_STEM: Record<number, number> = {
+    0: 8, 1: 9, 2: 11, 3: 0, 4: 2, 5: 3, 6: 5, 7: 6, 8: 5, 9: 6,
+  };
+  const luuLocTonIndex = LUU_LOC_TON_BY_STEM[transitStemIndex] ?? 2;
 
   saoLuuMap[luuLocTonIndex].push("Lưu Lộc Tồn");
 
@@ -533,7 +547,9 @@ export function calculateTransitInfo(
   const findStarBranchIndex = (starName: string): number => {
     const target = starName.trim().toLowerCase();
     for (const p of palaces) {
-      const allStars = [...(p.majorStars || []), ...(p.minorStars || [])];
+      // Quét đủ 3 nhóm sao: i ztro đôi khi xếp Văn Xương/Văn Khúc/Tả Phụ/Hữu Bật
+      // vào adjectiveStars; nếu thiếu nhóm này thì Lưu Tứ Hóa rơi vào các sao đó sẽ bị mất.
+      const allStars = [...(p.majorStars || []), ...(p.minorStars || []), ...(p.adjectiveStars || [])];
       if (allStars.some((s: any) => String(s.name || "").trim().toLowerCase() === target)) {
         return palaceIndexToBranchIndex(p.index);
       }
