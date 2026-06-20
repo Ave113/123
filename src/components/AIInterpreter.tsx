@@ -255,7 +255,11 @@ export const AIInterpreter: React.FC<AIInterpreterProps> = ({
   // Save key to browser local storage for convenience
   const handleSaveKey = (e: React.FormEvent) => {
     e.preventDefault();
-    localStorage.setItem("tuvi_byok_key", apiKey.trim());
+    try {
+      localStorage.setItem("tuvi_byok_key", apiKey.trim());
+    } catch (err) {
+      console.error("Không lưu được API key vào localStorage:", err);
+    }
     setSaveStatus(true);
     setTimeout(() => setSaveStatus(false), 2000);
   };
@@ -263,7 +267,11 @@ export const AIInterpreter: React.FC<AIInterpreterProps> = ({
   const handleSaveKeyInline = (e: React.FormEvent) => {
     e.preventDefault();
     if (!apiKey.trim()) return;
-    localStorage.setItem("tuvi_byok_key", apiKey.trim());
+    try {
+      localStorage.setItem("tuvi_byok_key", apiKey.trim());
+    } catch (err) {
+      console.error("Không lưu được API key vào localStorage:", err);
+    }
     setSaveStatus(true);
     setTimeout(() => {
       setSaveStatus(false);
