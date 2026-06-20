@@ -100,6 +100,8 @@ export const AIInterpreter: React.FC<AIInterpreterProps> = ({
 
   const readerContainerRef = React.useRef<HTMLDivElement>(null);
   const ambientAudioRef = React.useRef<{ audioCtx: AudioContext | null; gainNode: any } | null>(null);
+  // Cờ throttle cho onScroll: chỉ cho phép 1 lần cập nhật scrollPercent mỗi frame.
+  const scrollTickingRef = React.useRef<boolean>(false);
 
   // Synchronize browser body scrolling status of minimalist mode
   React.useEffect(() => {
@@ -186,11 +188,18 @@ export const AIInterpreter: React.FC<AIInterpreterProps> = ({
   };
 
   const handleScrollDepth = () => {
-    if (readerContainerRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } = readerContainerRef.current;
-      const pct = (scrollTop / (scrollHeight - clientHeight)) * 100;
-      setScrollPercent(Math.min(isNaN(pct) ? 0 : pct, 100));
-    }
+    // Throttle bằng requestAnimationFrame: onScroll bắn rất dày, gom về tối đa
+    // 1 lần setState mỗi frame để tránh re-render thừa khi cuộn văn bản dài.
+    if (scrollTickingRef.current) return;
+    scrollTickingRef.current = true;
+    requestAnimationFrame(() => {
+      scrollTickingRef.current = false;
+      if (readerContainerRef.current) {
+        const { scrollTop, scrollHeight, clientHeight } = readerContainerRef.current;
+        const pct = (scrollTop / (scrollHeight - clientHeight)) * 100;
+        setScrollPercent(Math.min(isNaN(pct) ? 0 : pct, 100));
+      }
+    });
   };
 
   const exitMinimalMode = () => {
@@ -201,6 +210,8 @@ export const AIInterpreter: React.FC<AIInterpreterProps> = ({
   };
 
   const toggleMinimalMode = () => {
+    // Không cho vào Zen Reader khi chưa có bản luận giải (tránh overlay rỗng).
+    if (!interpretation) return;
     const next = !isMinimalMode;
     setIsMinimalMode(next);
     localStorage.setItem("tuvi_minimal_mode", String(next));
