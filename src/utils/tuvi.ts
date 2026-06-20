@@ -544,6 +544,16 @@ export function calculateTransitInfo(
   const HOA_LABELS = ["Lưu Hóa Lộc", "Lưu Hóa Quyền", "Lưu Hóa Khoa", "Lưu Hóa Kỵ"];
 
   // Tìm cung (index địa chi) chứa sao gốc trên lá số, quét cả chính tinh lẫn phụ tinh
+  // ⚠️ ĐIỀU KIỆN AN TOÀN (ĐỌC TRƯỚC KHI SỬA): hàm này quét 1-pass, khớp tên trần
+  // và trả về cung ĐẦU TIÊN khớp. Nó chính xác CHỈ VÌ được gọi trên `palaces` GỐC
+  // từ iztro — tức CHƯA gắn tiền tố [SAO LƯU] (sao lưu do CHÍNH calculateTransitInfo
+  // sinh ra SAU đó, còn việc gắn nhãn [SAO LƯU] xảy ra muộn hơn nữa ở App.tsx).
+  // Trong bối cảnh đó mỗi sao gốc chỉ xuất hiện MỘT lần nên không khớp nhầm.
+  //
+  // 🚫 NẾU SAU NÀY truyền vào `palaces` ĐÃ gắn [SAO LƯU] (hoặc dữ liệu có sao trùng
+  // tên), 1-pass này có thể neo nhầm vào cung hạn chứa sao lưu mà KHÔNG báo lỗi.
+  // Khi đó PHẢI loại trừ [SAO LƯU] trước khi khớp (xem findStarBranch trong
+  // chartRelations.ts) để giữ đúng tọa độ sao gốc.
   const findStarBranchIndex = (starName: string): number => {
     const target = starName.trim().toLowerCase();
     for (const p of palaces) {
