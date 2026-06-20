@@ -81,8 +81,19 @@ export const palaceLabel = (idx: ChartIndex, branchIdx: number): string => {
 // Văn Xương/Văn Khúc/Tả Phụ/Hữu Bật có thể nằm ở nhóm phụ tinh.
 export const findStarBranch = (idx: ChartIndex, starName: string): number => {
   const target = normalizeStarName(starName);
+  // Pass 1: ưu tiên sao GỐC (không mang tiền tố [SAO LƯU]). Tránh đường phi tứ
+  // hóa trỏ vào cung chứa sao lưu cùng tên thay vì cung chứa sao gốc.
   for (const pa of idx.palacesArr) {
-    if (allStarsOf(pa).some((s: any) => normalizeStarName(s.name) === target)) {
+    const found = allStarsOf(pa).find(
+      (s: any) =>
+        !/\[SAO LƯU\]/i.test(String(s?.name || "")) &&
+        normalizeStarName(s?.name) === target,
+    );
+    if (found) return toBranchIndex(pa.index);
+  }
+  // Pass 2: fallback — chấp nhận cả sao lưu (giữ nguyên hành vi cũ, không bỏ sót sao).
+  for (const pa of idx.palacesArr) {
+    if (allStarsOf(pa).some((s: any) => normalizeStarName(s?.name) === target)) {
       return toBranchIndex(pa.index);
     }
   }
