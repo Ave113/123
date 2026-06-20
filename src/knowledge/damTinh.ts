@@ -266,7 +266,13 @@ export function getDamTinhForStars(starNames: string[]): string {
   const seen = new Set<string>();
   const blocks: string[] = [];
   for (const raw of starNames) {
-    const name = String(raw || "").trim();
+    // Chuẩn hóa đồng bộ với getDamTinhForAuxStars: NFC + bỏ [SAO LƯU] + gộp
+    // khoảng trắng + trim. KHÔNG hạ chữ thường để giữ khớp key Title Case của DAM_TINH.
+    const name = String(raw || "")
+      .normalize("NFC")
+      .replace(/\[SAO LƯU\]\s*/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
     if (!name || seen.has(name)) continue;
     seen.add(name);
     const entry = DAM_TINH[name];
