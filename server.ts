@@ -12,6 +12,14 @@ import {
   buildFlyingTuHoaLines,
   satKyStarsInPalace,
   buildCrossLinks,
+  BRANCHES_VI,
+  toBranchIndex,
+  NHI_HOP,
+  LUC_HAI,
+  normalizeStarName,
+  allStarsOf,
+  findStarBranch as findStarBranchOf,
+  palaceLabel as palaceLabelOf,
 } from "./src/utils/chartRelations";
 
 dotenv.config();
@@ -142,89 +150,27 @@ Bạn phải bám sát 100% dữ liệu thực tế đóng trong 12 cung của l
       // ===== TIỀN XỬ LÝ QUAN HỆ HÌNH HỌC LÁ SỐ (code tính sẵn, AI chỉ luận nghĩa) =====
       // Lưu ý: iztro đánh p.index gốc DẦN = 0. Quy về index địa chi chuẩn (Tý = 0) để
       // mọi phép tính quan hệ nhất quán với EARTHLY_BRANCHES và core tuvi.ts.
-      const BRANCHES_VI = ["Tý", "Sửu", "Dần", "Mão", "Thìn", "Tỵ", "Ngọ", "Mùi", "Thân", "Dậu", "Tuất", "Hợi"];
-      const toBranchIndex = (palaceIndex: number) => ((palaceIndex + 2) % 12 + 12) % 12;
-
-      // Bảng tứ hóa (TU_HOA_BY_STEM) và HOA_LABELS lấy từ nguồn chung ./tuHoa
-      // để không trùng lặp với core tuvi.ts.
+      // ===== NGUỒN SỰ THẬT DÙNG CHUNG =====
+      // toBranchIndex, NHI_HOP, LUC_HAI, normalizeStarName, allStarsOf, BRANCHES_VI,
+      // buildRelationsBlock... đều import từ chartRelations.ts (xem đầu file) để
+      // /api/interpret và /api/chat dùng CHUNG một bộ công thức — sửa một chỗ, đồng
+      // bộ cả hai. Bảng TU_HOA_BY_STEM/HOA_LABELS lấy từ ./tuHoa (nguồn chung).
 
       const palacesArr = chartData.palaces || [];
-      // Tra cứu cung theo index địa chi chuẩn
-      const palaceByBranch: Record<number, any> = {};
-      palacesArr.forEach((p: any) => { palaceByBranch[toBranchIndex(p.index)] = p; });
+      // Dựng chỉ mục cung theo index địa chi chuẩn MỘT lần, truyền lại cho các hàm
+      // dùng chung (findStarBranch/buildRelationsBlock) thay vì quét lại mảng cung.
+      const idx = buildChartIndex(palacesArr);
+      const palaceByBranch = idx.palaceByBranch;
 
-      const palaceLabel = (branchIdx: number) => {
-        const pa = palaceByBranch[branchIdx];
-        if (!pa) return `cung ${BRANCHES_VI[branchIdx]}`;
-        const stars = (pa.majorStars || []).map((s: any) => s.name).join(", ") || "Vô Chính Diệu";
-        return `${pa.name} (${BRANCHES_VI[branchIdx]}): ${stars}`;
-      };
+      // palaceLabel local mỏng wrap quanh idx: giữ chữ ký 1 tham số để mọi call site
+      // cũ trong endpoint (Phúc Đức, các cheat sheet) không phải đổi.
+      const palaceLabel = (branchIdx: number) => palaceLabelOf(idx, branchIdx);
 
-      // Chuẩn hóa tên sao để so khớp đáng tin: chuẩn hóa Unicode (NFC), xóa ký tự ẩn
-      // (zero-width), bỏ tiền tố [SAO LƯU], gộp khoảng trắng thừa, hạ chữ thường.
-      // Mục đích: bớt sót sao do khác biệt mã hóa/khoảng trắng ẩn từ dữ liệu client.
-      const normalizeStarName = (raw: any): string =>
-        String(raw || "")
-          .normalize("NFC")
-          .replace(/[\u200B-\u200D\uFEFF]/g, "")
-          .replace(/\[SAO LƯU\]\s*/g, "")
-          .replace(/\s+/g, " ")
-          .trim()
-          .toLowerCase();
+      // findStarBranch local mỏng (chữ ký 1 tham số) wrap quanh idx, giữ nguyên
+      // mọi call site cũ findStarBranch(star) trong endpoint khỏi phải sửa.
+      const findStarBranch = (starName: string): number => findStarBranchOf(idx, starName);
 
-      // Gộp cả 3 nhóm sao (chính tinh + phụ tinh + trợ/sát tinh) của một cung thành
-      // một mảng. Dùng chung cho mọi phép quét sao để tránh lặp và bỏ sót nhóm.
-      const allStarsOf = (p: any): any[] => [
-        ...(p?.majorStars || []),
-        ...(p?.minorStars || []),
-        ...(p?.adjectiveStars || []),
-      ];
-
-      // Tìm cung (index địa chi) chứa một sao gốc bất kỳ trên lá số.
-      // Quét đủ cả 3 nhóm sao: chính tinh, phụ tinh và trợ/sát tinh (adjectiveStars),
-      // vì sao Tứ Hóa như Văn Xương/Văn Khúc/Tả Phụ/Hữu Bật có thể nằm ở nhóm phụ tinh.
-      const findStarBranch = (starName: string): number => {
-        const target = normalizeStarName(starName);
-        for (const pa of palacesArr) {
-          const all = allStarsOf(pa);
-          if (all.some((s: any) => normalizeStarName(s.name) === target)) {
-            return toBranchIndex(pa.index);
-          }
-        }
-        return -1;
-      };
-
-      // Nhị hợp: Tý-Sửu, Dần-Hợi, Mão-Tuất, Thìn-Dậu, Tỵ-Thân, Ngọ-Mùi
-      const NHI_HOP: Record<number, number> = { 0: 1, 1: 0, 2: 11, 11: 2, 3: 10, 10: 3, 4: 9, 9: 4, 5: 8, 8: 5, 6: 7, 7: 6 };
-      // Lục hại: Tý-Mùi, Sửu-Ngọ, Dần-Tỵ, Mão-Thìn, Thân-Hợi, Dậu-Tuất
-      const LUC_HAI: Record<number, number> = { 0: 7, 7: 0, 1: 6, 6: 1, 2: 5, 5: 2, 3: 4, 4: 3, 8: 11, 11: 8, 9: 10, 10: 9 };
-
-      const buildRelations = (p: any): string => {
-        const b = toBranchIndex(p.index);
-        const xung = (b + 6) % 12;
-        const th1 = (b + 4) % 12;
-        const th2 = (b + 8) % 12;
-        const lines: string[] = [];
-        lines.push(`  - Xung chiếu (đối cung): ${palaceLabel(xung)}`);
-        lines.push(`  - Tam hợp: ${palaceLabel(th1)} | ${palaceLabel(th2)}`);
-        lines.push(`  - Nhị hợp: ${palaceLabel(NHI_HOP[b])}`);
-        lines.push(`  - Lục hại: ${palaceLabel(LUC_HAI[b])}`);
-        // Phi Tứ Hóa: dùng Thiên can của chính cung, tra sao đích đang đóng cung nào
-        const stem = p.heavenlyStem;
-        const tuhoa = TU_HOA_BY_STEM[stem];
-        if (tuhoa) {
-          const flights = tuhoa.map((star, i) => {
-            const dest = findStarBranch(star);
-            const destLabel = dest >= 0 ? `${palaceByBranch[dest]?.name || BRANCHES_VI[dest]} (${BRANCHES_VI[dest]})` : "không có trên lá số";
-            return `${HOA_LABELS[i]}→${star} [đóng tại ${destLabel}]`;
-          }).join("; ");
-          lines.push(`  - Phi Tứ Hóa (can ${stem}): ${flights}`);
-        }
-        // Nhãn neo: gắn rõ các dòng quan hệ này thuộc về chính cung nào,
-        // tránh để AI đọc tuần tự rồi ghép nhầm sang cung lân cận.
-        const anchor = `  [Quan hệ của ${p.name} (${BRANCHES_VI[b]})]`;
-        return [anchor, ...lines].join("\n");
-      };
+      const buildRelations = (p: any): string => buildRelationsBlock(idx, p);
 
       // ===== TỨ HÓA BẨM SINH (NATAL) TÍNH SẴN THEO THIÊN CAN NĂM SINH =====
       // Tránh để AI tự tra bảng can rồi tự tìm sao đóng cung nào (dễ sai vị trí).
