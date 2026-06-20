@@ -1,12 +1,7 @@
 import React from "react";
 import { User, Calendar, AlertCircle, ShieldAlert, BadgeInfo } from "lucide-react";
 import { calculateTransitInfo, EARTHLY_BRANCHES, palaceIndexToBranchIndex } from "../utils/tuvi";
-import { TU_HOA_BY_STEM, HOA_LABELS } from "../utils/tuHoa";
-
-// Quy ước index Thiên can theo (năm % 10) — đồng nhất với STEM_NAME_BY_YEAR_MOD
-// (0:Canh,1:Tân,2:Nhâm,3:Quý,4:Giáp,5:Ất,6:Bính,7:Đinh,8:Mậu,9:Kỷ) — dùng để
-// suy can năm sinh ra tên Thiên can, phục vụ tô nhãn Tứ Hóa bẩm sinh trên lá số.
-const STEM_NAME_BY_YEAR_MOD_LOCAL = ["Canh", "Tân", "Nhâm", "Quý", "Giáp", "Ất", "Bính", "Đinh", "Mậu", "Kỷ"];
+import { TU_HOA_BY_STEM, HOA_LABELS, STEM_NAME_BY_YEAR_MOD } from "../utils/tuHoa";
 
 // Màu nhãn cho từng loại Hóa (khớp thứ tự HOA_LABELS: Lộc/Quyền/Khoa/Kỵ).
 const HOA_BADGE_STYLE: Record<string, string> = {
@@ -172,7 +167,7 @@ export const HoroscopeChart: React.FC<HoroscopeChartProps> = ({
   // sinh, KHONG tinh lai moi render (tranh lag). Dung de gan badge mau Loc/Quyen/Khoa/Ky.
   const natalHoaByStar = React.useMemo(() => {
     const map: Record<string, string> = {};
-    const stem = STEM_NAME_BY_YEAR_MOD_LOCAL[((birthYear % 10) + 10) % 10];
+    const stem = STEM_NAME_BY_YEAR_MOD[((birthYear % 10) + 10) % 10];
     const quartet = TU_HOA_BY_STEM[stem];
     if (quartet) {
       quartet.forEach((starName, i) => {
