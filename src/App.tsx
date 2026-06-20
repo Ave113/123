@@ -15,6 +15,26 @@ import { BirthInput, SavedProfile, BirthplaceRegion, ChatTurn, SavedInterpretati
 import { generateTuviAstrolabe, calculateTransitInfo, EARTHLY_BRANCHES, palaceIndexToBranchIndex } from "./utils/tuvi";
 import { HoroscopeChart } from "./components/HoroscopeChart";
 import { AIInterpreter } from "./components/AIInterpreter";
+import { ErrorBoundary } from "./components/ErrorBoundary";
+
+// Ghi localStorage an toàn: bắt QuotaExceededError để không nuốt lỗi âm thầm
+// (gây lệch state trong bộ nhớ vs localStorage -> refresh là mất). Trả về true
+// nếu ghi thành công. Không đổi dữ liệu được ghi.
+const safeSetLocalStorage = (key: string, value: string): boolean => {
+  try {
+    localStorage.setItem(key, value);
+    return true;
+  } catch (e) {
+    if (e instanceof DOMException && (e.name === "QuotaExceededError" || e.code === 22)) {
+      alert(
+        "Bộ nhớ lưu hồ sơ của trình duyệt đã đầy. Hãy xóa bớt hồ sơ cũ hoặc bản luận giải đính kèm rồi thử lại — nếu không, các thay đổi mới có thể không được lưu sau khi tải lại trang."
+      );
+    } else {
+      console.error("Lỗi ghi localStorage:", e);
+    }
+    return false;
+  }
+};
 
 export default function App() {
   // Input fields state
@@ -90,7 +110,7 @@ export default function App() {
         };
         return { ...p, savedInterpretation: { ...base, ...patch } };
       });
-      localStorage.setItem("tuvi_profiles", JSON.stringify(updated));
+      safeSetLocalStorage("tuvi_profiles", JSON.stringify(updated));
       return updated;
     });
   };
@@ -183,7 +203,7 @@ export default function App() {
       ),
     ];
     setSavedProfiles(updated);
-    localStorage.setItem("tuvi_profiles", JSON.stringify(updated));
+    safeSetLocalStorage("tuvi_profiles", JSON.stringify(updated));
     setActiveProfileId(newProfile.id);
   };
 
@@ -223,7 +243,7 @@ export default function App() {
     e.stopPropagation();
     const updated = savedProfiles.filter(p => p.id !== id);
     setSavedProfiles(updated);
-    localStorage.setItem("tuvi_profiles", JSON.stringify(updated));
+    safeSetLocalStorage("tuvi_profiles", JSON.stringify(updated));
     if (activeProfileId === id) {
       setActiveProfileId(null);
     }
@@ -705,6 +725,7 @@ export default function App() {
               </div>
 
               {/* AI interpretation layer */}
+              <ErrorBoundary label="luận giải AI">
               <AIInterpreter
                 interpretation={interpretation}
                 isLoading={aiLoading}
@@ -730,6 +751,7 @@ export default function App() {
                 compatLoading={compatLoading}
                 compatError={compatError}
               />
+              </ErrorBoundary>
             </>
           ) : (
             <div className="p-20 text-center text-stone-400 space-y-4 bg-white dark:bg-neutral-900 rounded-3xl border border-stone-200 dark:border-neutral-800">
