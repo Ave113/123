@@ -284,3 +284,17 @@
     display: none !important;
   }
 }
+
+
+/* Tôn trọng tùy chọn giảm chuyển động của hệ điều hành: tắt mọi animation/transition
+   cho người dùng bật "Reduce Motion" (tránh nhấp nháy gây mỏi mắt / hỗ trợ tiền đình). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

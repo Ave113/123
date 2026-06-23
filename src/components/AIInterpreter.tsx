@@ -301,10 +301,10 @@ export const AIInterpreter: React.FC<AIInterpreterProps> = ({
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="text-base font-black tracking-tight flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-amber-400 animate-pulse" />
+              <Sparkles className="w-5 h-5 text-amber-400" />
               BÌNH GIẢI LÁ SỐ BẰNG TRÍ TUỆ NHÂN TẠO AI
             </h3>
-            <span className="text-[10px] bg-amber-500 text-stone-950 px-2 py-0.5 rounded-full font-black tracking-wider uppercase animate-pulse shadow-md">
+            <span className="text-[10px] bg-amber-500 text-stone-950 px-2 py-0.5 rounded-full font-black tracking-wider uppercase shadow-md">
               Chế độ Nói Thật & Trực Diện ⚡
             </span>
           </div>
@@ -327,6 +327,8 @@ export const AIInterpreter: React.FC<AIInterpreterProps> = ({
             <button
               type="button"
               onClick={() => setShowKey(!showKey)}
+              aria-label={showKey ? "Ẩn API Key" : "Hiện API Key"}
+              title={showKey ? "Ẩn API Key" : "Hiện API Key"}
               className="absolute right-1.5 top-1/2 -translate-y-1/2 text-indigo-300 hover:text-white"
             >
               {showKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
@@ -393,7 +395,7 @@ export const AIInterpreter: React.FC<AIInterpreterProps> = ({
             disabled={isLoading || retryCountdown > 0}
             className={`w-full sm:w-auto font-bold p-3 px-6 rounded-xl flex items-center justify-center gap-2.5 active:scale-98 transition-all shrink-0 text-sm select-none shadow-lg ${
               retryCountdown > 0
-                ? "bg-amber-600 hover:bg-amber-500 text-white shadow-amber-600/20 animate-pulse"
+                ? "bg-amber-600 hover:bg-amber-500 text-white shadow-amber-600/20"
                 : "bg-indigo-600 hover:bg-indigo-500 disabled:bg-stone-300 disabled:cursor-not-allowed text-white shadow-indigo-600/20"
             }`}
           >
@@ -516,6 +518,8 @@ export const AIInterpreter: React.FC<AIInterpreterProps> = ({
                         <button
                           type="button"
                           onClick={() => setShowKey(!showKey)}
+                          aria-label={showKey ? "Ẩn API Key" : "Hiện API Key"}
+                          title={showKey ? "Ẩn API Key" : "Hiện API Key"}
                           className="absolute right-2 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200"
                         >
                           {showKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
@@ -545,7 +549,7 @@ export const AIInterpreter: React.FC<AIInterpreterProps> = ({
         ) : interpretation ? (
           <div className="space-y-4">
             {fallbackUsedResult && (
-              <div className="p-4 bg-sky-50 dark:bg-sky-950/20 border border-sky-200 dark:border-sky-900/50 rounded-xl text-xs text-sky-850 dark:text-sky-300 flex items-start gap-2.5 animate-pulse shadow-sm">
+              <div className="p-4 bg-sky-50 dark:bg-sky-950/20 border border-sky-200 dark:border-sky-900/50 rounded-xl text-xs text-sky-850 dark:text-sky-300 flex items-start gap-2.5 shadow-sm">
                 <Sparkles className="w-5 h-5 text-sky-600 dark:text-sky-400 shrink-0 mt-0.5" />
                 <div className="space-y-1 text-left">
                   <p className="font-extrabold text-[#0369a1] dark:text-[#38bdf8] uppercase tracking-tight">Hệ Thống Tự Động Kích Hoạt Chuyển Hướng Dự Phòng 🚀</p>
@@ -701,7 +705,7 @@ export const AIInterpreter: React.FC<AIInterpreterProps> = ({
                       onClick={toggleAmbientSound}
                       className={`p-1.5 px-3 rounded-xl border flex gap-1.5 items-center transition-all cursor-pointer ${
                         isAmbientOn
-                          ? "bg-gradient-to-r from-amber-500 to-indigo-600 border-transparent text-white animate-pulse"
+                          ? "bg-gradient-to-r from-amber-500 to-indigo-600 border-transparent text-white"
                           : "border-stone-250 dark:border-neutral-850 hover:bg-stone-100"
                       }`}
                       title="Sóng âm thanh lọc khí kết nối bát tự giúp thông mượt vận số"

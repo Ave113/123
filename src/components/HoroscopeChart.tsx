@@ -348,7 +348,18 @@ export const HoroscopeChart: React.FC<HoroscopeChartProps> = ({
                 style={{ gridRow: layout.row, gridColumn: layout.col }}
                 onMouseEnter={() => setHoverIdx(index)}
                 onMouseLeave={() => setHoverIdx((cur) => (cur === index ? null : cur))}
-                className={`relative p-2 min-h-[160px] flex flex-col justify-between border ${highlightPalaceColor(
+                onClick={() => setHoverIdx((cur) => (cur === index ? null : index))}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setHoverIdx((cur) => (cur === index ? null : index));
+                  }
+                }}
+                aria-label={`Cung ${palace.name} (${palace.heavenlyStem} ${palace.earthlyBranch}) — chạm để xem tam hợp/xung chiếu`}
+                aria-pressed={hoverIdx === index}
+                className={`relative p-2 min-h-[160px] flex flex-col justify-between border cursor-pointer ${highlightPalaceColor(
                   palace.name,
                   index
                 )} ${linkClass} transition-[box-shadow]`}
@@ -413,11 +424,22 @@ export const HoroscopeChart: React.FC<HoroscopeChartProps> = ({
 
                     {/* Cát tinh list (Cát tinh, Tiệp cát tinh) in small green/dark format */}
                     <div className="pt-1 mt-1 border-t border-dashed border-stone-200/80 dark:border-neutral-800/80 text-[10px] text-emerald-700 dark:text-emerald-400 space-y-0.5">
-                      {palace.minorStars.map((s: any, idx: number) => (
-                        <div key={idx} className="font-semibold leading-none">
-                          {s.name}
-                        </div>
-                      ))}
+                      {palace.minorStars.map((s: any, idx: number) => {
+                        const hoaLabel = natalHoaByStar[String(s.name || "").trim().toLowerCase()];
+                        return (
+                          <div key={idx} className="font-semibold leading-none flex items-center gap-1 flex-wrap">
+                            {s.name}
+                            {hoaLabel && (
+                              <span
+                                className={`text-[8px] font-black px-1 rounded leading-tight ${HOA_BADGE_STYLE[hoaLabel] || "bg-stone-500 text-white"}`}
+                                title={`Tứ Hóa bẩm sinh: ${hoaLabel}`}
+                              >
+                                {HOA_BADGE_SHORT[hoaLabel] || hoaLabel}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
 
@@ -425,12 +447,21 @@ export const HoroscopeChart: React.FC<HoroscopeChartProps> = ({
                   <div className="pl-1 text-[10px] text-gray-500 dark:text-neutral-400 space-y-0.5">
                     {palace.adjectiveStars.map((s: any, idx: number) => {
                       const isSátTinh = s.name.match(/(Kình Dương|Đà La|Hỏa Tinh|Linh Tinh|Địa Không|Địa Kiếp|Hóa Kỵ|Hao|Hại)/);
+                      const hoaLabel = natalHoaByStar[String(s.name || "").trim().toLowerCase()];
                       return (
                         <div
                           key={idx}
-                          className={isSátTinh ? "font-bold text-rose-700 dark:text-rose-400" : "font-normal text-stone-500"}
+                          className={`flex items-center gap-1 flex-wrap ${isSátTinh ? "font-bold text-rose-700 dark:text-rose-400" : "font-normal text-stone-500"}`}
                         >
                           {s.name}
+                          {hoaLabel && (
+                            <span
+                              className={`text-[8px] font-black px-1 rounded leading-tight ${HOA_BADGE_STYLE[hoaLabel] || "bg-stone-500 text-white"}`}
+                              title={`Tứ Hóa bẩm sinh: ${hoaLabel}`}
+                            >
+                              {HOA_BADGE_SHORT[hoaLabel] || hoaLabel}
+                            </span>
+                          )}
                         </div>
                       );
                     })}
@@ -439,7 +470,7 @@ export const HoroscopeChart: React.FC<HoroscopeChartProps> = ({
                     {(transitInfo.saoLuuMap[index] || []).map((s: string, idx: number) => (
                       <div
                         key={`sao-luu-${idx}`}
-                        className="font-extrabold text-[#d25c14] dark:text-amber-400 flex items-center gap-0.5 text-[9px] bg-amber-50 dark:bg-amber-950/20 p-0.5 rounded px-1.5 mt-1 border border-amber-200 dark:border-amber-900/40 animate-pulse tracking-tight"
+                        className="font-extrabold text-[#d25c14] dark:text-amber-400 flex items-center gap-0.5 text-[9px] bg-amber-50 dark:bg-amber-950/20 p-0.5 rounded px-1.5 mt-1 border border-amber-200 dark:border-amber-900/40 tracking-tight"
                       >
                         ⚡ {s}
                       </div>
@@ -455,7 +486,7 @@ export const HoroscopeChart: React.FC<HoroscopeChartProps> = ({
                   
                   <div className="flex flex-col items-end">
                     {isThân && (
-                      <span className="text-[9px] font-bold text-white bg-blue-600 px-1 rounded shadow-sm animate-pulse mb-0.5">
+                      <span className="text-[9px] font-bold text-white bg-blue-600 px-1 rounded shadow-sm mb-0.5">
                         THÂN
                       </span>
                     )}

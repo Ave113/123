@@ -468,7 +468,7 @@ export function calculateTransitInfo(
   // C. Lưu Lộc Tồn, Lưu Kình Dương, Lưu Đà La:
   // Determine Heavenly Stem of transitYear (Y % 10)
   // 0: Canh, 1: Tân, 2: Nhâm, 3: Quý, 4: Giáp, 5: Ất, 6: Bính, 7: Đinh, 8: Mậu, 9: Kỷ
-  const transitStemIndex = transitYear % 10;
+  const transitStemIndex = ((transitYear % 10) + 10) % 10;
   // Lưu Lộc Tồn theo can năm hạn (key = year%10): 0:Canh->Thân, 1:Tân->Dậu,
   // 2:Nhâm->Hợi, 3:Quý->Tý, 4:Giáp->Dần, 5:Ất->Mão, 6:Bính->Tỵ, 7:Đinh->Ngọ,
   // 8:Mậu->Tỵ, 9:Kỷ->Ngọ. Cùng pattern với LUU_VAN_XUONG_BY_STEM bên dưới.
