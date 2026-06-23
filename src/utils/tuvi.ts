@@ -1,20 +1,10 @@
 import { astro } from 'iztro';
 import { TU_HOA_BY_YEAR_MOD } from './tuHoa';
 
-// Offset minutes translation table for Tý hour by Lunar Month (1 to 12)
-// This value is the offset in minutes relative to the standard start of Tý (23:00)
-// Month 1: 23:30 (offset +30)
-// Month 2: 23:40 (offset +40)
-// Month 3: 23:50 (offset +50)
-// Month 4: 00:00 (offset +60)
-// Month 5: 00:10 (offset +70)
-// Month 6: 00:00 (offset +60)
-// Month 7: 23:50 (offset +50)
-// Month 8: 23:40 (offset +40)
-// Month 9: 23:30 (offset +30)
-// Month 10: 23:20 (offset +20)
-// Month 11: 23:10 (offset +10)
-// Month 12: 23:20 (offset +20)
+// Giờ tiêu chuẩn Đông phương: 12 địa chi cố định 2 tiếng, mốc Tý = 23:00–01:00 (GMT+7).
+// Bảng offset (theo phút, so với mốc Tý 23:00) được giữ lại để tương thích ngược
+// và phòng khi cần bật lại lịch giờ biến thiên theo tháng âm lịch. Hiện toàn bộ = 0
+// nghĩa là dùng đúng khung giờ chuẩn, không lệch theo tháng.
 export const TUVI_GLOBAL_OFFSETS: Record<number, number> = {
   1: 0,
   2: 0,
@@ -134,140 +124,58 @@ export interface HourResult {
 }
 
 /**
- * Computes exact earthly branch hour and warning using the TuviGLOBAL schedule (Hanoi GMT+7)
+ * Xác định địa chi của giờ sinh + cảnh báo "sáp giới" theo Giờ Tiêu chuẩn
+ * Đông phương (khung 12 địa chi cố định 2 tiếng, mốc Tý = 23:00–01:00, GMT+7).
+ *
+ * Tham số lunarMonth được giữ lại ở chữ ký để tương thích nơi gọi và để có thể
+ * tái kích hoạt lịch giờ biến thiên theo tháng (TUVI_GLOBAL_OFFSETS) trong tương lai;
+ * với offset = 0 hiện tại, giờ chuẩn không phụ thuộc tháng âm lịch.
  */
 export function getTuviGlobalTime(lunarMonth: number, date: Date): HourResult {
-  const hour = date.getHours();
-  const min = date.getMinutes();
-  const timeMin = hour * 60 + min;
+  void lunarMonth; // giờ chuẩn không phụ thuộc tháng âm lịch (offset = 0)
+  const timeMin = date.getHours() * 60 + date.getMinutes();
 
-  // Siết lunarMonth về [1,12]: tránh trường hợp ngoài miền khiến offset rơi về 0
-  // (lệch toàn bộ khung giờ) mà không báo. Input hợp lệ (1..12 từ iztro) không đổi.
-  const safeMonth = Math.min(12, Math.max(1, Math.floor(Number(lunarMonth) || 1)));
-  if (safeMonth !== lunarMonth) {
-    console.warn(`[tuvi] lunarMonth ngoài miền 1..12: ${lunarMonth} -> dùng ${safeMonth}`);
-  }
-  const offset = TUVI_GLOBAL_OFFSETS[safeMonth];
+  const TY_START = 23 * 60; // 23:00 - mốc bắt đầu giờ Tý
+  const TY_END = 1 * 60;    // 01:00 - kết thúc giờ Tý (sang ngày hôm sau)
+
   let branchIndex = 0;
   let dateShift = 0;
   let rangeStr = "";
   let warning: string | null = null;
 
-  // Let's find the boundaries of the hour slots
-  if (offset < 60) {
-    // Tý starts BEFORE midnight, e.g. at 23:30 (for M=1, offset=30)
-    const lateTýStart = 1380 + offset; // e.g. 1410
-    const earlyTýEnd = 60 + offset;    // e.g. 90
+  if (timeMin >= TY_START || timeMin < TY_END) {
+    // Giờ Tý: 23:00 – 01:00, vắt sang ngày hôm sau
+    branchIndex = 0;
+    dateShift = timeMin >= TY_START ? 1 : 0;
+    const prev = getFormattedTime(TY_START); // 23h00
+    const next = getFormattedTime(TY_END);   // 01h00
+    rangeStr = `${prev} – ${next} (vắt sang ngày hôm sau)`;
 
-    if (timeMin >= lateTýStart) {
-      // Born in late Tý, belongs to early hours of tomorrow
-      branchIndex = 0; // Tý
-      dateShift = 1;
-      const prev = getFormattedTime(lateTýStart);
-      const next = getFormattedTime(earlyTýEnd);
-      rangeStr = `${prev} – ${next} (vắt sang ngày hôm sau)`;
-      
-      const dist = Math.abs(timeMin - lateTýStart);
-      if (dist <= 15) {
-        // Khung giờ Hợi thực tế phụ thuộc offset của tháng âm lịch, không hard-code
-        const hoiStart = getFormattedTime(1260 + offset);
-        warning = `Sinh sáp giới mốc chuyển giờ Hợi sang Tý (${prev}). Hãy kiểm định với giờ Hợi (${hoiStart} - ${prev}).`;
-      }
-    } else if (timeMin < earlyTýEnd) {
-      branchIndex = 0; // Tý
-      dateShift = 0;
-      const prev = getFormattedTime(lateTýStart);
-      const next = getFormattedTime(earlyTýEnd);
-      rangeStr = `${prev} – ${next} (vắt sang ngày hôm sau)`;
-
-      const dist = Math.abs(timeMin - earlyTýEnd);
-      if (dist <= 15) {
-        warning = `Sinh sáp giới mốc chuyển giờ Tý sang Sửu (${next}). Hãy kiểm định với giờ Sửu (${next} - ${getFormattedTime(earlyTýEnd + 120)}).`;
-      }
-    } else {
-      // Normal intervals (Sửu to Hợi)
-      // i is slot index 1 to 11
-      for (let i = 1; i <= 11; i++) {
-        const start = (2 * i - 1) * 60 + offset;
-        const end = (2 * i + 1) * 60 + offset;
-        if (timeMin >= start && timeMin < end) {
-          branchIndex = i;
-          dateShift = 0;
-          const sStr = getFormattedTime(start);
-          const eStr = getFormattedTime(end);
-          rangeStr = `${sStr} – ${eStr}`;
-
-          const distStart = Math.abs(timeMin - start);
-          const distEnd = Math.abs(timeMin - end);
-          if (distStart <= 15) {
-            warning = `Sinh sáp giới mốc chuyển giờ ${EARTHLY_BRANCHES[i-1]} sang ${EARTHLY_BRANCHES[i]} (${sStr}). Hãy kiểm định với giờ ${EARTHLY_BRANCHES[i-1]}.`;
-          } else if (distEnd <= 15) {
-            const nextBranch = EARTHLY_BRANCHES[(i + 1) % 12];
-            warning = `Sinh sáp giới mốc chuyển giờ ${EARTHLY_BRANCHES[i]} sang ${nextBranch} (${eStr}). Hãy kiểm định với giờ ${nextBranch}.`;
-          }
-          break;
-        }
-      }
+    if (timeMin >= TY_START && Math.abs(timeMin - TY_START) <= 15) {
+      const hoiStart = getFormattedTime(21 * 60); // 21h00
+      warning = `Sinh sáp giới mốc chuyển giờ Hợi sang Tý (${prev}). Hãy kiểm định với giờ Hợi (${hoiStart} - ${prev}).`;
+    } else if (timeMin < TY_END && Math.abs(timeMin - TY_END) <= 15) {
+      warning = `Sinh sáp giới mốc chuyển giờ Tý sang Sửu (${next}). Hãy kiểm định với giờ Sửu (${next} - ${getFormattedTime(TY_END + 120)}).`;
     }
   } else {
-    // Tý starts AFTER midnight, e.g. at 00:10 (for M=5, offset=70)
-    const earlyHợiEnd = offset - 60; // e.g. 10
-    const earlyTýEnd = offset + 60;   // e.g. 130
-
-    if (timeMin < earlyHợiEnd) {
-      // Standard midnight but hasn't entered Tý yet, meaning it is still Hợi hour of PREVIOUS day!
-      branchIndex = 11; // Hợi
-      dateShift = -1;
-      const prev = getFormattedTime(1380 + (offset - 60)); // 22:10 of previous day
-      const next = getFormattedTime(earlyHợiEnd);          // 00:10 of current day
-      rangeStr = `${prev} – ${next} (kéo dài qua 00h)`;
-
-      const dist = Math.abs(timeMin - earlyHợiEnd);
-      if (dist <= 15) {
-        warning = `Sinh sáp giới mốc chuyển giờ Hợi sang Tý (${next}). Hãy kiểm định với giờ Tý (${next} - ${getFormattedTime(earlyTýEnd)}).`;
-      }
-    } else {
-      // Normal intervals from Tý (starts at offset - 60)
-      const startOfTý = offset - 60;
-      if (timeMin >= startOfTý && timeMin < startOfTý + 120) {
-        branchIndex = 0; // Tý
+    // Sửu → Hợi: slot i (1..11), mỗi khung 2 tiếng, khởi từ 01:00
+    for (let i = 1; i <= 11; i++) {
+      const start = (2 * i - 1) * 60;
+      const end = (2 * i + 1) * 60;
+      if (timeMin >= start && timeMin < end) {
+        branchIndex = i;
         dateShift = 0;
-        const sStr = getFormattedTime(startOfTý);
-        const eStr = getFormattedTime(startOfTý + 120);
+        const sStr = getFormattedTime(start);
+        const eStr = getFormattedTime(end);
         rangeStr = `${sStr} – ${eStr}`;
 
-        const distStart = Math.abs(timeMin - startOfTý);
-        const distEnd = Math.abs(timeMin - (startOfTý + 120));
-        if (distStart <= 15) {
-          const prevBranch = EARTHLY_BRANCHES[11];
-          warning = `Sinh sáp giới mốc chuyển giờ ${prevBranch} sang Tý (${sStr}). Hãy kiểm định với giờ ${prevBranch}.`;
-        } else if (distEnd <= 15) {
-          const nextBranch = EARTHLY_BRANCHES[1];
-          warning = `Sinh sáp giới mốc chuyển giờ Tý sang ${nextBranch} (${eStr}). Hãy kiểm định với giờ ${nextBranch}.`;
+        if (Math.abs(timeMin - start) <= 15) {
+          warning = `Sinh sáp giới mốc chuyển giờ ${EARTHLY_BRANCHES[i - 1]} sang ${EARTHLY_BRANCHES[i]} (${sStr}). Hãy kiểm định với giờ ${EARTHLY_BRANCHES[i - 1]}.`;
+        } else if (Math.abs(timeMin - end) <= 15) {
+          const nextBranch = EARTHLY_BRANCHES[(i + 1) % 12];
+          warning = `Sinh sáp giới mốc chuyển giờ ${EARTHLY_BRANCHES[i]} sang ${nextBranch} (${eStr}). Hãy kiểm định với giờ ${nextBranch}.`;
         }
-      } else {
-        // Other slots (1 to 11)
-        for (let i = 1; i <= 11; i++) {
-          const start = (2 * i - 1) * 60 + offset;
-          const end = (2 * i + 1) * 60 + offset;
-          if (timeMin >= start && timeMin < end) {
-            branchIndex = i;
-            dateShift = 0;
-            const sStr = getFormattedTime(start);
-            const eStr = getFormattedTime(end);
-            rangeStr = `${sStr} – ${eStr}`;
-
-            const distStart = Math.abs(timeMin - start);
-            const distEnd = Math.abs(timeMin - end);
-            if (distStart <= 15) {
-              warning = `Sinh sáp giới mốc chuyển giờ ${EARTHLY_BRANCHES[i-1]} sang ${EARTHLY_BRANCHES[i]} (${sStr}). Hãy kiểm định với giờ ${EARTHLY_BRANCHES[i-1]}.`;
-            } else if (distEnd <= 15) {
-              const nextBranch = EARTHLY_BRANCHES[(i + 1) % 12];
-              warning = `Sinh sáp giới mốc chuyển giờ ${EARTHLY_BRANCHES[i]} sang ${nextBranch} (${eStr}). Hãy kiểm định với giờ ${nextBranch}.`;
-            }
-            break;
-          }
-        }
+        break;
       }
     }
   }
