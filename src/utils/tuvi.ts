@@ -16,18 +16,18 @@ import { TU_HOA_BY_YEAR_MOD } from './tuHoa';
 // Month 11: 23:10 (offset +10)
 // Month 12: 23:20 (offset +20)
 export const TUVI_GLOBAL_OFFSETS: Record<number, number> = {
-  1: 30,
-  2: 40,
-  3: 50,
-  4: 60,
-  5: 70,
-  6: 60,
-  7: 50,
-  8: 40,
-  9: 30,
-  10: 20,
-  11: 10,
-  12: 20,
+  1: 0,
+  2: 0,
+  3: 0,
+  4: 0,
+  5: 0,
+  6: 0,
+  7: 0,
+  8: 0,
+  9: 0,
+  10: 0,
+  11: 0,
+  12: 0,
 };
 
 export const EARTHLY_BRANCHES = [

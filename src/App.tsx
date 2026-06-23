@@ -504,7 +504,7 @@ export default function App() {
                 TỬ VI SAO <span className="text-[10px] bg-red-600 px-1.5 py-0.5 rounded text-white tracking-widest font-bold">BẢN MỆNH AI</span>
               </h1>
               <p className="text-[10px] text-stone-400 font-medium">
-                Tính toán Lịch Học chính xác theo TuviGLOBAL & Múi giờ Lịch sử VN • <span className="text-amber-400 font-bold tracking-wider font-mono">by khackhoa</span>
+                Tính toán Lịch Học chính xác theo Giờ Chuẩn & Múi giờ Lịch sử VN • <span className="text-amber-400 font-bold tracking-wider font-mono">by khackhoa</span>
               </p>
             </div>
           </div>
@@ -536,7 +536,7 @@ export default function App() {
                 Thiết Lập Thông Tin Sinh Mệnh
               </h2>
               <p className="text-[11px] text-stone-400 mt-1">
-                Vui lòng cung cấp giờ sinh dương lịch. Thuật toán sẽ tự căn chỉnh múi giờ lịch sử và tra bảng TuviGLOBAL chính tông.
+                Vui lòng cung cấp giờ sinh dương lịch. Thuật toán sẽ tự căn chỉnh múi giờ lịch sử Việt Nam chuẩn xác.
               </p>
             </div>
 
@@ -605,6 +605,54 @@ export default function App() {
                     <option value="Miền Bắc VN / Khác">Miền Bắc VN / Khác</option>
                     <option value="Nước ngoài (Quy đổi GMT+7)">Nước ngoài (Quy đổi GMT+7)</option>
                   </select>
+
+                  {birthplace === "Nước ngoài (Quy đổi GMT+7)" && (
+                    <div className="space-y-1.5 mt-2.5">
+                      <label className="text-[10px] font-extrabold text-stone-600 dark:text-stone-300 block uppercase tracking-wider">
+                        Múi giờ gốc nơi sinh (GMT)
+                      </label>
+                      <select
+                        value={originalTimezoneOffset}
+                        onChange={(e) => setOriginalTimezoneOffset(Number(e.target.value))}
+                        className="w-full text-xs font-bold bg-stone-50 dark:bg-neutral-950 border border-stone-250 dark:border-neutral-800 focus:border-indigo-500 focus:outline-none p-[11px] rounded-xl text-stone-800 dark:text-white"
+                      >
+                        <option value={-12}>GMT-12 (Kwajalein)</option>
+                        <option value={-11}>GMT-11 (Samoa)</option>
+                        <option value={-10}>GMT-10 (Hawaii)</option>
+                        <option value={-9}>GMT-9 (Alaska)</option>
+                        <option value={-8}>GMT-8 (Mỹ/Canada PST - San Francisco, Vancouver)</option>
+                        <option value={-7}>GMT-7 (Mỹ MST - Denver)</option>
+                        <option value={-6}>GMT-6 (Mỹ/Canada CST - Chicago)</option>
+                        <option value={-5}>GMT-5 (Mỹ/Canada EST - New York, Toronto)</option>
+                        <option value={-4}>GMT-4 (Mỹ AST)</option>
+                        <option value={-3.5}>GMT-3.5 (Newfoundland)</option>
+                        <option value={-3}>GMT-3 (Argentina, Brazil - Rio de Janeiro)</option>
+                        <option value={-2}>GMT-2 (Trung Đại Tây Dương)</option>
+                        <option value={-1}>GMT-1 (Azores)</option>
+                        <option value={0}>GMT+0 (Anh - London, Bồ Đào Nha)</option>
+                        <option value={1}>GMT+1 (Pháp - Paris, Đức - Berlin, Ý - Rome)</option>
+                        <option value={2}>GMT+2 (Ai Cập, Hy Lạp, Nam Phi)</option>
+                        <option value={3}>GMT+3 (Nga - Moscow, Thổ Nhĩ Kỳ, Ả Rập)</option>
+                        <option value={3.5}>GMT+3.5 (Iran)</option>
+                        <option value={4}>GMT+4 (Dubai, UAE)</option>
+                        <option value={4.5}>GMT+4.5 (Afghanistan)</option>
+                        <option value={5}>GMT+5 (Pakistan, Uzbekistan)</option>
+                        <option value={5.5}>GMT+5.5 (Ấn Độ, Sri Lanka)</option>
+                        <option value={5.75}>GMT+5.75 (Nepal)</option>
+                        <option value={6}>GMT+6 (Bangladesh, Bhutan)</option>
+                        <option value={6.5}>GMT+6.5 (Myanmar)</option>
+                        <option value={7}>GMT+7 (Việt Nam, Thái Lan, Indonesia)</option>
+                        <option value={8}>GMT+8 (Singapore, Trung Quốc - Bắc Kinh, Đài Loan, Tây Úc)</option>
+                        <option value={9}>GMT+9 (Nhật Bản, Hàn Quốc)</option>
+                        <option value={9.5}>GMT+9.5 (Úc - Darwin)</option>
+                        <option value={10}>GMT+10 (Úc - Sydney, Melbourne)</option>
+                        <option value={11}>GMT+11 (Solomon Islands)</option>
+                        <option value={12}>GMT+12 (New Zealand, Fiji)</option>
+                        <option value={13}>GMT+13 (Tonga)</option>
+                        <option value={14}>GMT+14 (Line Islands)</option>
+                      </select>
+                    </div>
+                  )}
                 </div>
               </div>{/* Solar Date and Time row */}
 
@@ -703,7 +751,7 @@ export default function App() {
             <div className="text-[10px] text-stone-400 leading-normal p-2.5 bg-stone-50 dark:bg-neutral-950 rounded-lg border border-stone-200 dark:border-neutral-800 flex items-start gap-1.5">
               <Info className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
               <p>
-                <strong>Tử Vi Sao</strong> là khoa lập pháp nghiên cứu chu kỳ tinh tú. Sự chính xác của giờ Tý biên cải theo từng tháng âm lịch chính là tinh hoa cốt tủy loại bỏ sai sót mà TuviGLOBAL đề xướng.
+                <strong>Tử Vi Sao</strong> là khoa lập pháp nghiên cứu chu kỳ tinh tú. Giờ sinh âm lịch được quy chuẩn thống nhất theo Hệ thống Giờ Tiêu chuẩn Đông Phương.
               </p>
             </div>
           </div>
