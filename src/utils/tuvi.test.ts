@@ -33,11 +33,11 @@ describe("palaceIndexToBranchIndex", () => {
 });
 
 describe("TUVI_GLOBAL_OFFSETS", () => {
-  it("có đủ 12 tháng và đúng giá trị theo bảng TuviGLOBAL", () => {
+  it("có đủ 12 tháng và đều bằng 0 (giờ chuẩn)", () => {
     expect(Object.keys(TUVI_GLOBAL_OFFSETS)).toHaveLength(12);
-    expect(TUVI_GLOBAL_OFFSETS[1]).toBe(30); // Tý khởi 23:30
-    expect(TUVI_GLOBAL_OFFSETS[5]).toBe(70); // Tý khởi 00:10
-    expect(TUVI_GLOBAL_OFFSETS[11]).toBe(10); // Tý khởi 23:10
+    expect(TUVI_GLOBAL_OFFSETS[1]).toBe(0);
+    expect(TUVI_GLOBAL_OFFSETS[5]).toBe(0);
+    expect(TUVI_GLOBAL_OFFSETS[11]).toBe(0);
   });
 });
 
@@ -73,7 +73,6 @@ describe("normalizeToHanoi - hiệu chỉnh múi giờ lịch sử", () => {
 });
 
 describe("getTuviGlobalTime - xác định giờ địa chi", () => {
-  // Tháng 1 âm: offset 30 -> Tý = 23:30 - 01:30
   it("tháng 1, 12:00 -> giờ Ngọ, không warning", () => {
     const r = getTuviGlobalTime(1, new Date(2024, 0, 15, 12, 0));
     expect(r.branchName).toBe("Ngọ");
@@ -81,8 +80,8 @@ describe("getTuviGlobalTime - xác định giờ địa chi", () => {
     expect(r.warning).toBeNull();
   });
 
-  it("tháng 1, 23:45 -> Tý muộn, dịch +1 ngày, có warning sáp giới", () => {
-    const r = getTuviGlobalTime(1, new Date(2024, 0, 15, 23, 45));
+  it("tháng 1, 23:10 -> Tý muộn, dịch +1 ngày, có warning sắp giới", () => {
+    const r = getTuviGlobalTime(1, new Date(2024, 0, 15, 23, 10));
     expect(r.branchName).toBe("Tý");
     expect(r.dateShift).toBe(1);
     expect(r.warning).not.toBeNull();
@@ -95,45 +94,24 @@ describe("getTuviGlobalTime - xác định giờ địa chi", () => {
     expect(r.dateShift).toBe(0);
   });
 
-  it("tháng 1, 01:35 -> Sửu, warning sáp giới Tý sang Sửu", () => {
-    const r = getTuviGlobalTime(1, new Date(2024, 0, 15, 1, 35));
+  it("tháng 1, 01:05 -> Sửu, warning sắp giới Tý sang Sửu", () => {
+    const r = getTuviGlobalTime(1, new Date(2024, 0, 15, 1, 5));
     expect(r.branchName).toBe("Sửu");
     expect(r.warning).not.toBeNull();
   });
 
-  // Tháng 5 âm: offset 70 -> Tý = 00:10 - 02:10, Hợi kéo dài qua 00h
-  it("tháng 5, 00:05 -> vẫn là giờ Hợi của ngày hôm trước (dịch -1)", () => {
-    const r = getTuviGlobalTime(5, new Date(2024, 5, 15, 0, 5));
-    expect(r.branchName).toBe("Hợi");
-    expect(r.dateShift).toBe(-1);
-  });
-
-  it("tháng 5, 00:30 -> Tý, không dịch ngày", () => {
-    const r = getTuviGlobalTime(5, new Date(2024, 5, 15, 0, 30));
-    expect(r.branchName).toBe("Tý");
-    expect(r.dateShift).toBe(0);
-  });
-
-  it("tháng 5, 13:00 -> Ngọ (khung 12:10 - 14:10)", () => {
-    const r = getTuviGlobalTime(5, new Date(2024, 5, 15, 13, 0));
+  it("tháng 5, 12:00 -> Ngọ, không dịch ngày", () => {
+    const r = getTuviGlobalTime(5, new Date(2024, 5, 15, 12, 0));
     expect(r.branchName).toBe("Ngọ");
-  });
-
-  // Tháng 4 âm: offset 60 -> Tý = 00:00 - 02:00 (chuẩn midnight)
-  it("tháng 4, 00:00 -> Tý, có warning sáp giới Hợi sang Tý", () => {
-    const r = getTuviGlobalTime(4, new Date(2024, 4, 15, 0, 0));
-    expect(r.branchName).toBe("Tý");
     expect(r.dateShift).toBe(0);
-    expect(r.warning).not.toBeNull();
   });
 
-  // Tháng 11 âm: offset 10 -> Tý khởi 23:10
-  it("tháng 11, 23:05 -> Hợi; 23:15 -> Tý dịch +1 ngày", () => {
-    const hoi = getTuviGlobalTime(11, new Date(2024, 11, 15, 23, 5));
+  it("tháng 11, 22:55 -> Hợi; 23:05 -> Tý dịch +1 ngày", () => {
+    const hoi = getTuviGlobalTime(11, new Date(2024, 11, 15, 22, 55));
     expect(hoi.branchName).toBe("Hợi");
     expect(hoi.dateShift).toBe(0);
 
-    const ty = getTuviGlobalTime(11, new Date(2024, 11, 15, 23, 15));
+    const ty = getTuviGlobalTime(11, new Date(2024, 11, 15, 23, 5));
     expect(ty.branchName).toBe("Tý");
     expect(ty.dateShift).toBe(1);
   });

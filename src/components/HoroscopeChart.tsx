@@ -270,7 +270,7 @@ export const HoroscopeChart: React.FC<HoroscopeChartProps> = ({
                 - Hiệu chỉnh múi giờ lịch sử: {timezoneNormalization.note} (Múi giờ thực tế: <strong className="text-amber-800 dark:text-amber-400">{timezoneNormalization.timezoneLabel}</strong>).
               </p>
               <p>
-                - Giờ âm lịch chính xác: Giờ <strong className="text-amber-900 dark:text-amber-400 text-sm">{tuviGlobalHourResult.branchName}</strong> (Khung giờ thực tính theo tháng âm lịch: {tuviGlobalHourResult.rangeStr}).
+                - Giờ âm lịch chính xác: Giờ <strong className="text-amber-900 dark:text-amber-400 text-sm">{tuviGlobalHourResult.branchName}</strong> (Khung giờ tiêu chuẩn: {tuviGlobalHourResult.rangeStr}).
               </p>
               {tuviGlobalHourResult.dateShift !== 0 && (
                 <p className="p-1 px-2 text-red-800 bg-red-100 rounded dark:bg-red-950/50 dark:text-red-300 font-medium inline-block">
