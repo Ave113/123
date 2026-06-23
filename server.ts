@@ -5,6 +5,8 @@ import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 import { TU_HOA_BY_STEM, HOA_LABELS, STEM_NAME_BY_YEAR_MOD } from "./src/utils/tuHoa";
 import { getDamTinhForStars, getDamTinhForAuxStars, getDamTinhTuHoa, getDamTinhTuHoaDetail } from "./src/knowledge/damTinh";
+import { baZiToPromptText } from "./src/utils/bazi";
+import { retrieveKnowledge, knowledgeToPromptText } from "./src/knowledge/chineseKnowledge";
 import {
   buildChartIndex,
   buildRelationsBlock,
@@ -344,6 +346,34 @@ Bạn phải bám sát 100% dữ liệu thực tế đóng trong 12 cung của l
         });
       });
       const damTinhStr = getDamTinhForStars(allMajorStarNames);
+
+      // ===== BÁT TỰ / TỨ TRỤ (đối chiếu song hệ) =====
+      // App.tsx đã dựng sẵn lá Bát Tự từ cùng thời điểm sinh; ở đây chỉ format
+      // thành text. Nếu thiếu (client cũ / lỗi) thì bỏ qua an toàn.
+      const baZiStr = chartData.baZi ? baZiToPromptText(chartData.baZi) : "";
+
+      // ===== TRI THỨC TRUNG HOA (RAG-lite) =====
+      // Truy hồi vài mẩu tri thức liên quan nhất theo: chính tinh đang sáng,
+      // Thập Thần nổi bật (Bát Tự) và 2 hành vượng nhất -> tránh nhồi toàn bộ.
+      const shiShenList: string[] = [];
+      if (chartData.baZi?.pillars) {
+        const ps = chartData.baZi.pillars;
+        [ps.year, ps.month, ps.day, ps.hour].forEach((p: any) => {
+          if (p?.shiShenGanVi) shiShenList.push(p.shiShenGanVi);
+          (p?.shiShenZhiVi || []).forEach((x: string) => shiShenList.push(x));
+        });
+      }
+      const dominantElements: string[] = chartData.baZi?.wuXingWithHidden
+        ? Object.entries(chartData.baZi.wuXingWithHidden)
+            .sort((a: any, b: any) => Number(b[1]) - Number(a[1]))
+            .slice(0, 2)
+            .map((e: any) => String(e[0]))
+        : [];
+      const knowledgeEntries = retrieveKnowledge(
+        { stars: allMajorStarNames, shiShen: shiShenList, elements: dominantElements },
+        6,
+      );
+      const chineseKnowledgeStr = knowledgeToPromptText(knowledgeEntries);
 
       // ===== ĐÀM TINH: PHỤ/TẠP TINH (trần ngân sách mềm chống phình prompt) =====
       // Gom TÊN phụ/tá/sát/tạp diệu thực có (minor + adjective) toàn lá số, rồi CHỈ lấy
@@ -745,6 +775,13 @@ ${damTinhTuHoaGeneralStr}
 Dưới đây là tinh tình của ĐÚNG các cặp (chính tinh × Hóa) thực sự xuất hiện trên lá số này, gồm Tứ Hóa bẩm sinh và phi hóa Đại vận/Lưu niên (đã tính sẵn ở các phần trên). Dùng để luận SÂU sắc thái riêng của từng sao khi thụ Hóa theo từng can, KHÔNG chép khô khan: hãy ghép với cung vị nơi sao thụ hóa đang đóng (đã có ở bảng Tứ Hóa) và tam phương tứ chính để ra kết luận động về đương số:
 ${damTinhTuHoaDetailStr}
 
+--- LÁ SỐ BÁT TỰ / TỨ TRỤ (HỆ THỨ HAI — ĐỐI CHIẾU CHÉO VỚI TỬ VI) ---
+${baZiStr || "(Không có dữ liệu Bát Tự cho lá số này.)"}
+
+--- TRI THỨC THAM CHIẾU TRUNG HOA (ĐÃ TRUY HỒI THEO LÁ SỐ — RAG) ---
+Đây là vài mẩu tri thức (Ngũ Hành, Thập Thần, nguyên tắc luận chéo Tử Vi↔Bát Tự, phong cách diễn giải) được hệ thống chọn lọc cho ĐÚNG lá số này. Dùng để luận SÂU và trích nguồn minh bạch; KHÔNG chép khô khan, chỉ áp dụng khi thực sự khớp dữ liệu lá số trên:
+${chineseKnowledgeStr || "(Không có mẩu tri thức nào khớp.)"}
+
 --- KHUNG LUẬN GIẢI CHƯƠNG TRÌNH CHI TIẾT ---
 
 Bạn hãy soạn thảo bình giải chi tiết gồm 10 phần lớn sau đây bằng chữ quốc ngữ cực kỳ sâu sắc, phân tích chính xác từng sao và kết nối liên hoàn:
@@ -805,6 +842,12 @@ Bạn hãy soạn thảo bình giải chi tiết gồm 10 phần lớn sau đây
 
 9. **ĐỊNH CÁCH PHÚ QUÝ BẦN TIỆN — CÂU KẾT TỔNG LỰC MỆNH**:
    Đây là PHẦN CHỐT HẠ cuối bài. Dùng cheat sheet "ĐẾM CÁT/HUNG ĐỊNH CÁCH PHÚ QUÝ" kết hợp cách cục chính tinh, miếu/hãm và thế đất Tràng Sinh ở trên để ĐÚC KẾT một nhận định tổng về tầng phúc lộc của đương số: cốt cách thuộc tầng nào (phúc hậu / trung bình khá / lao tâm vất vả / thăng trầm lớn), điểm sáng nhất để nương vào và điểm hiểm nhất phải cảnh chừng cả đời. TUYỆT ĐỐI không phán máy móc theo số đếm (vd "5 cát 2 hung nên giàu") — con số chỉ là gợi ý, phải luận bằng cả chất lượng sao, miếu hãm và thế đất. Viết câu kết bằng giọng đanh thép, thật lòng của một danh sư — vừa thẳng thắn chỉ ra vận mệnh, vừa mở cho đương số con đường đức năng thắng số, tự cải vận bằng tu tâm sửa nết.
+
+**ĐỐI CHIẾU CHÉO BÁT TỰ ↔ TỬ VI (bắt buộc khi có dữ liệu Bát Tự ở trên)**:
+   Ở các Phần trọng yếu (1 bản sắc, 2 tài/quan, 4 vận hạn, 9 định cách), hãy SOI lá Bát Tự để kiểm chứng kết luận Tử Vi, theo "TRI THỨC THAM CHIẾU" đã truy hồi:
+   - Nhật Chủ (can ngày) + ngũ hành vượng/nhược + Thập Thần nổi bật cho biết cốt cách & động lực gốc; đối chiếu với chính tinh thủ Mệnh/Thân.
+   - Tài tinh/Quan tinh (Bát Tự) đối chiếu cung Tài Bạch/Quan Lộc (Tử Vi); Đại Vận (Bát Tự) đối chiếu Đại Hạn/lưu niên (Tử Vi).
+   - Hai hệ ĐỒNG THUẬN -> nhấn mạnh, luận quả quyết, độ tin cậy cao. Hai hệ MÂU THUẪN -> nêu rõ cả hai góc nhìn, KHÔNG cưỡng ép, ưu tiên xét vận hạn để phân kỳ. Khi viện dẫn nguyên tắc/thuật ngữ Bát Tự, nói rõ nguồn (Tử Bình) để minh bạch.
 
 Văn phong trình bày bằng Markdown gọn gàng, súc mộc nhưng đanh thép học thuật tột bậc. Mở đầu bằng một câu nói trực diện đầy uy lực xoáy sâu thẳng thắn nhân tính, từ ngữ thấu tỏ hiện đại và tâm can thực thụ của một danh sư hữu tâm!`;
 

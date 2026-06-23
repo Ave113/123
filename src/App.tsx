@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { BirthInput, SavedProfile, BirthplaceRegion, ChatTurn, SavedInterpretation } from "./types";
 import { generateTuviAstrolabe, calculateTransitInfo, EARTHLY_BRANCHES, palaceIndexToBranchIndex } from "./utils/tuvi";
+import { computeBaZi } from "./utils/bazi";
 import { HoroscopeChart } from "./components/HoroscopeChart";
 import { AIInterpreter } from "./components/AIInterpreter";
 import { ErrorBoundary } from "./components/ErrorBoundary";
@@ -279,8 +280,23 @@ export default function App() {
       transitYear
     );
 
+    // ===== BÁT TỰ / TỨ TRỤ (chạy song song với Tử Vi) =====
+    // Dùng CÙNG thời điểm đã chuẩn hoá GMT+7 để hai hệ nhất quán. Gói chart vào
+    // payload để server.ts đối chiếu chéo và truy hồi tri thức liên quan.
+    let baZi = null;
+    try {
+      baZi = computeBaZi(
+        new Date(calculated.timezoneNormalization.normalizedDate),
+        chart.gender as "Nam" | "Nữ",
+      );
+    } catch (e) {
+      console.warn("Không dựng được lá Bát Tự:", e);
+    }
+
     const formattedPayload = {
       solarDate: calculated.timezoneNormalization.originalDate,
+      // Lá Bát Tự (đối chiếu song hệ); có thể null nếu lỗi -> server bỏ qua an toàn.
+      baZi,
       solarTime: calculated.timezoneNormalization.originalTime,
       lunarDate: chart.lunarDate,
       chineseDate: chart.chineseDate,
