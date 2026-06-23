@@ -18,6 +18,8 @@
 // Nội dung là bản tóm lược kiến thức mệnh lý phổ thông, viết lại bằng tiếng Việt.
 // ============================================================================
 
+import { TU_BINH_KNOWLEDGE } from "./tuBinh";
+
 export interface KnowledgeEntry {
   id: string;
   /** Thẻ để truy hồi: tên sao, tên Thập Thần, ngũ hành, chủ đề... (khớp lỏng). */
@@ -59,61 +61,9 @@ export const CHINESE_KNOWLEDGE: KnowledgeEntry[] = [
       "gặp Kỵ Thần thì trắc trở.",
   },
 
-  // --- 10 Thập Thần ---
-  {
-    id: "thapthan-ty-kiep",
-    tags: ["tỷ kiên", "kiếp tài", "tỷ kiếp", "thập thần", "anh em", "cạnh tranh", "hợp tác"],
-    title: "Tỷ Kiên & Kiếp Tài (Tỷ Kiếp)",
-    source: "Thập Thần — Tử Bình",
-    content:
-      "Cùng hành với Nhật Chủ. Chủ về anh em, bạn bè, đồng nghiệp, cạnh tranh, hợp tác và cái " +
-      "tôi. Vượng thì độc lập, gan dạ, nhưng dễ tranh đoạt tiền tài, hao tài vì bạn bè, hợp tác " +
-      "dễ đổ vỡ. Thân nhược cần Tỷ Kiếp trợ thân; thân vượng thì Tỷ Kiếp thành kỵ.",
-  },
-  {
-    id: "thapthan-thuc-thuong",
-    tags: ["thực thần", "thương quan", "thực thương", "thập thần", "tài năng", "sáng tạo", "con cái"],
-    title: "Thực Thần & Thương Quan",
-    source: "Thập Thần — Tử Bình",
-    content:
-      "Nhật Chủ sinh ra. Chủ về tài năng, biểu đạt, sáng tạo, ăn nói, con cái (với nữ). Thực Thần " +
-      "ôn hoà, hưởng thụ, phúc khí. Thương Quan thông minh sắc sảo nhưng ngạo, dễ phạm thượng, " +
-      "khắc Chính Quan (kỵ với người làm quan/công chức nếu Thương Quan vô chế). 'Thương Quan " +
-      "kiến Quan' thường chủ thị phi, kiện tụng nếu không có Ấn hoặc Tài hoá giải.",
-  },
-  {
-    id: "thapthan-tai",
-    tags: ["chính tài", "thiên tài", "tài tinh", "thập thần", "tiền bạc", "vợ", "kinh doanh"],
-    title: "Chính Tài & Thiên Tài",
-    source: "Thập Thần — Tử Bình",
-    content:
-      "Nhật Chủ khắc. Chủ về tiền tài, vật chất, vợ (với nam). Chính Tài là thu nhập chính đáng, " +
-      "ổn định, tiết kiệm. Thiên Tài là tài bất ngờ, đầu tư, kinh doanh rộng, hào phóng. Tài vượng " +
-      "mà thân nhược ('tài đa thân nhược') thì khó giữ của, vất vả vì tiền/vì vợ; cần Tỷ Kiếp hoặc " +
-      "Ấn trợ thân mới hưởng được tài.",
-  },
-  {
-    id: "thapthan-quan-sat",
-    tags: ["chính quan", "thất sát", "thiên quan", "quan sát", "thập thần", "sự nghiệp", "quyền lực", "chồng"],
-    title: "Chính Quan & Thất Sát (Thiên Quan)",
-    source: "Thập Thần — Tử Bình",
-    content:
-      "Khắc Nhật Chủ. Chủ về sự nghiệp, danh vị, quyền lực, kỷ luật, chồng (với nữ). Chính Quan " +
-      "đoan chính, hợp công danh/quản lý. Thất Sát mạnh mẽ, quyết liệt, hợp võ nghiệp/khởi nghiệp " +
-      "nhưng vô chế thì thành áp lực, tai ách. 'Sát ấn tương sinh' hoặc 'Thực thần chế Sát' là cách " +
-      "quý — biến áp lực thành quyền uy.",
-  },
-  {
-    id: "thapthan-an",
-    tags: ["chính ấn", "thiên ấn", "kiêu thần", "ấn tinh", "thập thần", "học vấn", "mẹ", "quý nhân"],
-    title: "Chính Ấn & Thiên Ấn (Kiêu Thần)",
-    source: "Thập Thần — Tử Bình",
-    content:
-      "Sinh Nhật Chủ. Chủ về học vấn, văn bằng, che chở, mẹ, quý nhân, danh dự. Chính Ấn nhân hậu, " +
-      "học hành thuận, được nâng đỡ. Thiên Ấn (Kiêu Thần) thiên về kỹ năng đặc thù, tôn giáo, huyền " +
-      "học; 'Kiêu đoạt Thực' thì hao phúc, dễ cô độc, lo nghĩ nhiều. Ấn trợ thân nhược rất tốt; thân " +
-      "vượng mà Ấn nhiều thì trì trệ, ỷ lại.",
-  },
+  // --- 10 Thập Thần: đã chuyển sang bản SÂU trong ./tuBinh.ts ---
+  //   (tubinh-thapthan-tai / -quan-sat / -an / -thuc-thuong / -ty-kiep) —
+  //   luận theo từng trụ + Hỷ/Kỵ. Pool truy hồi đã gộp TU_BINH_KNOWLEDGE.
 
   // --- Cầu nối Tử Vi <-> Bát Tự (giá trị cốt lõi của tính năng song song) ---
   {
@@ -195,7 +145,9 @@ export function retrieveKnowledge(ctx: RetrieveContext, topN = 6): KnowledgeEntr
     .forEach((x) => needles.add(norm(x)));
   const queryWords = ctx.query ? norm(ctx.query).split(/\s+/).filter((w) => w.length >= 2) : [];
 
-  const scored = CHINESE_KNOWLEDGE.map((entry) => {
+  // Gộp pool: tri thức cầu nối/nền tảng (file này) + kho Tử Bình sâu (tuBinh.ts).
+  const POOL = [...CHINESE_KNOWLEDGE, ...TU_BINH_KNOWLEDGE];
+  const scored = POOL.map((entry) => {
     const tagSet = entry.tags.map(norm);
     let score = 0;
     for (const n of needles) {

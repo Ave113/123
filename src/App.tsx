@@ -288,6 +288,7 @@ export default function App() {
       baZi = computeBaZi(
         new Date(calculated.timezoneNormalization.normalizedDate),
         chart.gender as "Nam" | "Nữ",
+        transitYear, // để tính Lưu niên Bát Tự đối chiếu lưu niên Tử Vi
       );
     } catch (e) {
       console.warn("Không dựng được lá Bát Tự:", e);

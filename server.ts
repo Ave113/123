@@ -371,7 +371,7 @@ Bạn phải bám sát 100% dữ liệu thực tế đóng trong 12 cung của l
         : [];
       const knowledgeEntries = retrieveKnowledge(
         { stars: allMajorStarNames, shiShen: shiShenList, elements: dominantElements },
-        6,
+        7,
       );
       const chineseKnowledgeStr = knowledgeToPromptText(knowledgeEntries);
 
@@ -843,11 +843,14 @@ Bạn hãy soạn thảo bình giải chi tiết gồm 10 phần lớn sau đây
 9. **ĐỊNH CÁCH PHÚ QUÝ BẦN TIỆN — CÂU KẾT TỔNG LỰC MỆNH**:
    Đây là PHẦN CHỐT HẠ cuối bài. Dùng cheat sheet "ĐẾM CÁT/HUNG ĐỊNH CÁCH PHÚ QUÝ" kết hợp cách cục chính tinh, miếu/hãm và thế đất Tràng Sinh ở trên để ĐÚC KẾT một nhận định tổng về tầng phúc lộc của đương số: cốt cách thuộc tầng nào (phúc hậu / trung bình khá / lao tâm vất vả / thăng trầm lớn), điểm sáng nhất để nương vào và điểm hiểm nhất phải cảnh chừng cả đời. TUYỆT ĐỐI không phán máy móc theo số đếm (vd "5 cát 2 hung nên giàu") — con số chỉ là gợi ý, phải luận bằng cả chất lượng sao, miếu hãm và thế đất. Viết câu kết bằng giọng đanh thép, thật lòng của một danh sư — vừa thẳng thắn chỉ ra vận mệnh, vừa mở cho đương số con đường đức năng thắng số, tự cải vận bằng tu tâm sửa nết.
 
-**ĐỐI CHIẾU CHÉO BÁT TỰ ↔ TỬ VI (bắt buộc khi có dữ liệu Bát Tự ở trên)**:
-   Ở các Phần trọng yếu (1 bản sắc, 2 tài/quan, 4 vận hạn, 9 định cách), hãy SOI lá Bát Tự để kiểm chứng kết luận Tử Vi, theo "TRI THỨC THAM CHIẾU" đã truy hồi:
-   - Nhật Chủ (can ngày) + ngũ hành vượng/nhược + Thập Thần nổi bật cho biết cốt cách & động lực gốc; đối chiếu với chính tinh thủ Mệnh/Thân.
-   - Tài tinh/Quan tinh (Bát Tự) đối chiếu cung Tài Bạch/Quan Lộc (Tử Vi); Đại Vận (Bát Tự) đối chiếu Đại Hạn/lưu niên (Tử Vi).
-   - Hai hệ ĐỒNG THUẬN -> nhấn mạnh, luận quả quyết, độ tin cậy cao. Hai hệ MÂU THUẪN -> nêu rõ cả hai góc nhìn, KHÔNG cưỡng ép, ưu tiên xét vận hạn để phân kỳ. Khi viện dẫn nguyên tắc/thuật ngữ Bát Tự, nói rõ nguồn (Tử Bình) để minh bạch.
+**ĐỐI CHIẾU CHÉO BÁT TỰ ↔ TỬ VI + CHẤM ĐỘ TIN CẬY (bắt buộc khi có dữ liệu Bát Tự ở trên)**:
+   VAI TRÒ: Tử Vi là hệ luận CHÍNH; Bát Tự là hệ KIỂM CHỨNG phụ trợ — KHÔNG thay thế, KHÔNG ngang hàng. Kết luận cuối luôn do Tử Vi dẫn dắt; Bát Tự dùng để xác nhận điều Tử Vi nói có vững không và bổ sung cho chính xác.
+   CÁCH LÀM: ở MỖI kết luận TRỌNG YẾU (Phần 1 bản sắc, 2 tài/quan, 4 vận hạn, 9 định cách), sau khi luận xong bằng Tử Vi, hãy SOI nhanh lá Bát Tự (dùng phần "PHÂN TÍCH TỬ BÌNH" đã tính sẵn + "TRI THỨC THAM CHIẾU" đã truy hồi) rồi GẮN MỘT nhãn độ tin cậy:
+   - **[Đồng thuận ✅]** — hai hệ cùng chỉ một hướng (vd Tử Vi: cung Quan đẹp + Bát Tự: Chính Quan/Thất Sát hữu chế là Hỷ). Nhấn mạnh, luận quả quyết.
+   - **[Bổ sung ➕]** — Bát Tự thêm sắc thái/điều kiện Tử Vi chưa rõ (vd thân nhược → tài tốt nhưng cần quý nhân trợ). Bổ sung lời khuyên.
+   - **[Mâu thuẫn ⚠️]** — hai hệ lệch nhau (vd Tử Vi lưu niên Hóa Lộc nhưng Lưu niên Bát Tự là Kỵ thần). Nêu RÕ cả hai, KHÔNG cưỡng ép, hạ giọng thận trọng và ưu tiên xét vận hạn để phân kỳ.
+   ĐỐI CHIẾU CỤ THỂ: Nhật Chủ + thân vượng/nhược ↔ chính tinh thủ Mệnh/Thân & "mệnh cường/nhược"; Tài/Quan tinh ↔ cung Tài Bạch/Quan Lộc; Dụng/Kỵ thần & Lưu niên Bát Tự ↔ lưu niên Tử Vi (Hóa Lộc/Quyền/Khoa/Kỵ).
+   KỶ LUẬT: chỉ gắn nhãn ở vài kết luận LỚN (đừng gắn tràn lan thành máy móc). Khi viện dẫn thuật ngữ Bát Tự PHẢI nói rõ nguồn (Tử Bình) và nhớ nguyên tắc "mọi Thập Thần/Thần Sát chỉ tốt-xấu tùy Hỷ-Kỵ & Vượng-Suy", diễn đạt theo nghĩa "CÓ XU HƯỚNG", không "CHẮC CHẮN".
 
 Văn phong trình bày bằng Markdown gọn gàng, súc mộc nhưng đanh thép học thuật tột bậc. Mở đầu bằng một câu nói trực diện đầy uy lực xoáy sâu thẳng thắn nhân tính, từ ngữ thấu tỏ hiện đại và tâm can thực thụ của một danh sư hữu tâm!`;
 
