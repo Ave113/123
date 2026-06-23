@@ -665,6 +665,8 @@ export default function App() {
                   </div>
                   <button
                     onClick={(e) => handleDeleteProfile(p.id, e)}
+                    aria-label={`Xóa hồ sơ ${p.name}`}
+                    title="Xóa hồ sơ"
                     className="p-1.5 text-stone-400 hover:text-red-500 rounded-lg hover:bg-stone-200/50 dark:hover:bg-neutral-900 transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
