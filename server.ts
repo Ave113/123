@@ -7,6 +7,7 @@ import { TU_HOA_BY_STEM, HOA_LABELS, STEM_NAME_BY_YEAR_MOD } from "./src/utils/t
 import { getDamTinhForStars, getDamTinhForAuxStars, getDamTinhTuHoa, getDamTinhTuHoaDetail } from "./src/knowledge/damTinh";
 import { baZiToPromptText } from "./src/utils/bazi";
 import { retrieveKnowledge, knowledgeToPromptText } from "./src/knowledge/chineseKnowledge";
+import { retrieveTuBinh, tuBinhToPromptText } from "./src/knowledge/tuBinhKnowledge";
 import {
   buildChartIndex,
   buildRelationsBlock,
@@ -374,6 +375,17 @@ Bạn phải bám sát 100% dữ liệu thực tế đóng trong 12 cung của l
         6,
       );
       const chineseKnowledgeStr = knowledgeToPromptText(knowledgeEntries);
+
+      // ===== KHO TRI THỨC TỬ BÌNH (BÁT TỰ) SÂU — Cấp 2 =====
+      // Truy hồi riêng kho Tử Bình sâu theo Thập Thần nổi bật + ngũ hành thiên
+      // lệch của lá Bát Tự, LUÔN kèm các mẫu nền tảng (vượng-nhược, dụng thần,
+      // hỷ-kỵ, trình tự, kinh nghiệm) để AI luận Bát Tự CÓ SÁCH, không bịa khung.
+      // Chỉ chèn khi thật sự có dữ liệu Bát Tự (tránh phình prompt vô ích).
+      const tuBinhKnowledgeStr = chartData.baZi
+        ? tuBinhToPromptText(
+            retrieveTuBinh({ shiShen: shiShenList, elements: dominantElements }, 9),
+          )
+        : "";
 
       // ===== ĐÀM TINH: PHỤ/TẠP TINH (trần ngân sách mềm chống phình prompt) =====
       // Gom TÊN phụ/tá/sát/tạp diệu thực có (minor + adjective) toàn lá số, rồi CHỈ lấy
@@ -782,6 +794,10 @@ ${baZiStr || "(Không có dữ liệu Bát Tự cho lá số này.)"}
 Đây là vài mẩu tri thức (Ngũ Hành, Thập Thần, nguyên tắc luận chéo Tử Vi↔Bát Tự, phong cách diễn giải) được hệ thống chọn lọc cho ĐÚNG lá số này. Dùng để luận SÂU và trích nguồn minh bạch; KHÔNG chép khô khan, chỉ áp dụng khi thực sự khớp dữ liệu lá số trên:
 ${chineseKnowledgeStr || "(Không có mẩu tri thức nào khớp.)"}
 
+--- KHO TRI THỨC TỬ BÌNH (BÁT TỰ) SÂU — ĐÃ TRUY HỒI THEO LÁ SỐ (kho riêng) ---
+Đây là các trích đoạn tri thức Tử Bình truyền thống (nền tảng tính toán, ý nghĩa 10 Thập Thần theo trụ, quy tắc Dụng thần, Thần Sát, Cách cục, quan hệ Can–Chi, Hỷ–Kỵ, Đại vận/Lưu niên) được hệ thống chọn lọc cho ĐÚNG lá Bát Tự ở trên. ĐÂY LÀ "SÁCH" để bạn luận Bát Tự CÓ CĂN CỨ, KHÔNG được bịa khái niệm/quy tắc ngoài kho này. Bắt buộc tuân thủ trình tự: Vượng–Nhược → Dụng thần → Hỷ–Kỵ → rồi mới phán Thập Thần/Thần Sát là cát hay hung (đừng luận Thần Sát trước khi định Hỷ–Kỵ). Khi viện dẫn, ghi rõ nguồn (Tử Bình) để minh bạch:
+${tuBinhKnowledgeStr || "(Không có dữ liệu Bát Tự nên không truy hồi kho Tử Bình.)"}
+
 --- KHUNG LUẬN GIẢI CHƯƠNG TRÌNH CHI TIẾT ---
 
 Bạn hãy soạn thảo bình giải chi tiết gồm 10 phần lớn sau đây bằng chữ quốc ngữ cực kỳ sâu sắc, phân tích chính xác từng sao và kết nối liên hoàn:
@@ -843,11 +859,14 @@ Bạn hãy soạn thảo bình giải chi tiết gồm 10 phần lớn sau đây
 9. **ĐỊNH CÁCH PHÚ QUÝ BẦN TIỆN — CÂU KẾT TỔNG LỰC MỆNH**:
    Đây là PHẦN CHỐT HẠ cuối bài. Dùng cheat sheet "ĐẾM CÁT/HUNG ĐỊNH CÁCH PHÚ QUÝ" kết hợp cách cục chính tinh, miếu/hãm và thế đất Tràng Sinh ở trên để ĐÚC KẾT một nhận định tổng về tầng phúc lộc của đương số: cốt cách thuộc tầng nào (phúc hậu / trung bình khá / lao tâm vất vả / thăng trầm lớn), điểm sáng nhất để nương vào và điểm hiểm nhất phải cảnh chừng cả đời. TUYỆT ĐỐI không phán máy móc theo số đếm (vd "5 cát 2 hung nên giàu") — con số chỉ là gợi ý, phải luận bằng cả chất lượng sao, miếu hãm và thế đất. Viết câu kết bằng giọng đanh thép, thật lòng của một danh sư — vừa thẳng thắn chỉ ra vận mệnh, vừa mở cho đương số con đường đức năng thắng số, tự cải vận bằng tu tâm sửa nết.
 
-**ĐỐI CHIẾU CHÉO BÁT TỰ ↔ TỬ VI (bắt buộc khi có dữ liệu Bát Tự ở trên)**:
-   Ở các Phần trọng yếu (1 bản sắc, 2 tài/quan, 4 vận hạn, 9 định cách), hãy SOI lá Bát Tự để kiểm chứng kết luận Tử Vi, theo "TRI THỨC THAM CHIẾU" đã truy hồi:
-   - Nhật Chủ (can ngày) + ngũ hành vượng/nhược + Thập Thần nổi bật cho biết cốt cách & động lực gốc; đối chiếu với chính tinh thủ Mệnh/Thân.
-   - Tài tinh/Quan tinh (Bát Tự) đối chiếu cung Tài Bạch/Quan Lộc (Tử Vi); Đại Vận (Bát Tự) đối chiếu Đại Hạn/lưu niên (Tử Vi).
-   - Hai hệ ĐỒNG THUẬN -> nhấn mạnh, luận quả quyết, độ tin cậy cao. Hai hệ MÂU THUẪN -> nêu rõ cả hai góc nhìn, KHÔNG cưỡng ép, ưu tiên xét vận hạn để phân kỳ. Khi viện dẫn nguyên tắc/thuật ngữ Bát Tự, nói rõ nguồn (Tử Bình) để minh bạch.
+**ĐỐI CHIẾU CHÉO & CHẤM ĐỘ TIN CẬY BÁT TỰ ↔ TỬ VI (bắt buộc khi có dữ liệu Bát Tự ở trên)**:
+   KẾT LUẬN CUỐI LUÔN DO TỬ VI DẪN. Bát Tự là HỆ ĐỐI CHIẾU để chấm độ tin cậy, KHÔNG phải "chân lý" để xác minh đúng/sai Tử Vi. Đây là đối chiếu ĐỘ NHẤT QUÁN giữa hai trường phái, không phải kiểm chứng khách quan — nói đúng bản chất, không thổi phồng độ chính xác.
+   Ở các Phần trọng yếu (1 bản sắc, 2 tài/quan, 4 vận hạn, 9 định cách), với MỖI kết luận Tử Vi quan trọng, hãy SOI lá Bát Tự (theo "KHO TRI THỨC TỬ BÌNH" đã truy hồi: Vượng–Nhược Nhật Chủ → Dụng thần → Hỷ–Kỵ → Thập Thần/Thần Sát) rồi GẮN MỘT NHÃN tin cậy ngắn ngay sau kết luận đó:
+   - **[Đồng thuận mạnh]** khi hai hệ cùng chỉ một hướng (vd Tử Vi luận hợp kinh doanh + Bát Tự Thân vượng Tài vượng/Tài là Dụng) → luận quả quyết, nhấn mạnh, độ tin cậy cao.
+   - **[Bổ sung]** khi Bát Tự không mâu thuẫn nhưng làm rõ thêm sắc thái/cơ chế/thời điểm mà Tử Vi chưa nói hết (vd Bát Tự cho biết Dụng thần là Hỏa nên các Đại vận/Lưu niên hành Hỏa mới thực phát) → ghi nhận như lớp chiều sâu, vẫn để Tử Vi dẫn.
+   - **[Mâu thuẫn – thận trọng]** khi hai hệ lệch nhau (vd Tử Vi cát mà Bát Tự Thân nhược không gánh nổi) → KHÔNG cưỡng ép, nêu rõ cả hai góc nhìn, hạ giọng dè dặt thay vì khẳng định chắc nịch, và ưu tiên xét vận hạn (Đại Hạn Tử Vi + Đại Vận Bát Tự) để phân kỳ thời điểm.
+   Quy chiếu cụ thể: Nhật Chủ (can ngày) + ngũ hành vượng/nhược + Thập Thần nổi bật ↔ chính tinh thủ Mệnh/Thân (cốt cách & động lực gốc). Tài tinh/Quan tinh (Bát Tự) ↔ cung Tài Bạch/Quan Lộc (Tử Vi). Đại Vận (Bát Tự) ↔ Đại Hạn/lưu niên (Tử Vi).
+   KỶ LUẬT: chỉ gắn nhãn ở các kết luận TRỌNG YẾU (đừng rải nhãn khắp bài làm loãng). Đừng tạo "rigor giả" bằng cách ép đối chiếu những chỗ hai hệ vốn không khớp 1-1. Khi viện dẫn nguyên tắc/thuật ngữ Bát Tự, nói rõ nguồn (Tử Bình) để minh bạch.
 
 Văn phong trình bày bằng Markdown gọn gàng, súc mộc nhưng đanh thép học thuật tột bậc. Mở đầu bằng một câu nói trực diện đầy uy lực xoáy sâu thẳng thắn nhân tính, từ ngữ thấu tỏ hiện đại và tâm can thực thụ của một danh sư hữu tâm!`;
 
